@@ -23,7 +23,7 @@ let S=Object.assign({codes:[],hidden:[],msgs:true,eyes:true,f:{},pipAllow:false,
 const save=()=>localStorage.fm_admin=JSON.stringify(S),rec=c=>S.codes.find(x=>x.code==c)||{};
 const teacherOpen=()=>Date.now()-(+localStorage.fm_teacher_open||0)<4000;
 // Admin token: marks this device as an admin. While the teacher view is open here, the student page stays locked.
-async function unlock(){const p=$('pw').value,ok=S.pwh?(await sha(p))===S.pwh:p==='skyblue';if(!ok)return $('pe').textContent='Wrong password';localStorage.fm_admin_tok=Math.random().toString(36).slice(2);$('lock').classList.add('hide');if(!started){started=true;mk();render();setInterval(render,3000)}}
+async function unlock(){const p=$('pw').value,ok=S.pwh?(await sha(p))===S.pwh:p==='google123';if(!ok)return $('pe').textContent='Wrong password';localStorage.fm_admin_tok=Math.random().toString(36).slice(2);$('lock').classList.add('hide');if(!started){started=true;mk();render();setInterval(render,3000)}}
 function signOut(){if(teacherOpen())return toast('Close the teacher view on this device first');localStorage.removeItem('fm_admin_tok');location.reload()}
 async function chPw(){const a=prompt('New admin password (min 6 characters)');if(!a)return;if(a.length<6)return toast('Too short');S.pwh=await sha(a);save();toast('✅ Password changed')}
 function mk(){peer=mkPeer(ADMIN_ID);
