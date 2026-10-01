@@ -1,0 +1,43 @@
+<!doctype html><html><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><title>Class Connect</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.4/peerjs.min.js"></script>
+<style>*{box-sizing:border-box}body{font:16px system-ui;margin:0;background:#f3f5f9;color:#1b2430}header{background:#1f3a8a;color:#fff;padding:12px 18px;font-weight:600}main{padding:16px;max-width:520px;margin:auto}.c{background:#fff;border-radius:10px;padding:16px;margin-bottom:12px;box-shadow:0 1px 3px #0002}button{background:#2748c9;color:#fff;border:0;border-radius:6px;padding:9px 13px;cursor:pointer;margin:3px}button.g{background:#6b7280}input{padding:9px;border:1px solid #bbb;border-radius:6px;font:inherit;width:100%;margin-bottom:8px}.hide{display:none!important}#mo{position:fixed;inset:0;background:#1f3a8a;color:#fff;z-index:9;display:flex;flex-direction:column;padding:20px}#mt{flex:1;overflow:hidden;display:flex;align-items:center;justify-content:center;text-align:center;font-weight:700;word-break:break-word;line-height:1.15}</style></head><body>
+<header>Class Connect</header><main>
+<div class=c id=s1><b>What is your name?</b><br><br><input id=nm placeholder="Your name"><button onclick="start()">Allow local network &amp; continue</button></div>
+<div class="c hide" id=s2><b>Hi <span id=hi></span>!</b><p>Classes found on your network:</p><div id=fl>Looking…</div><hr><p>Or type your 6-digit class code:</p><input id=cd maxlength=6 inputmode=numeric placeholder="000000"><button onclick="go($('cd').value.trim())">Join</button><p id=er style="color:#b91c1c"></p><button class=g onclick="forget()">Forget my info</button></div>
+<div class="c hide" id=s3><b id=cn></b><p id=cs>Connected ✔</p><button class=g onclick="leave()">Leave class</button></div>
+</main>
+<div id=mo class=hide><div id=mt></div><button onclick="$('mo').classList.add('hide')" style="font-size:20px">OK</button></div>
+<script>
+const PX='awtyfm1',$=i=>document.getElementById(i);
+let name=localStorage.fm_sn||'',sid=localStorage.fm_sid||(localStorage.fm_sid=Math.random().toString(36).slice(2)),focusOn=false,useBat=false,B=null,tc=null,joined=false,want=false,code=localStorage.fm_sc||'',away=false,last=Date.now(),ready=false;
+const peer=new Peer();peer.on('open',()=>ready=true);peer.on('error',()=>{});
+navigator.getBattery&&navigator.getBattery().then(b=>B=b).catch(()=>{});
+const show=i=>['s1','s2','s3'].forEach(x=>$(x).classList.toggle('hide',x!=i));
+function start(){const v=$('nm').value.trim();if(!v)return;name=v;localStorage.fm_sn=v;
+ try{const p=new RTCPeerConnection();p.createDataChannel('x');p.createOffer().then(o=>p.setLocalDescription(o));setTimeout(()=>p.close(),1200)}catch(e){}home()}
+function home(){$('hi').textContent=name;show('s2');scan()}
+function ask(m,cb){if(!ready)return cb(null);const c=peer.connect(PX+'-admin',{reliable:true});let d=0;const f=r=>{if(!d){d=1;cb(r);try{c.close()}catch(e){}}};c.on('open',()=>c.send(m));c.on('data',f);c.on('error',()=>f(null));setTimeout(()=>f(null),4000)}
+function scan(){if(joined||!name)return;ask({t:'list'},r=>{if(joined)return;const f=$('fl');f.innerHTML='';
+ if(!r||!r.list.length){f.textContent=r?'No open classes yet.':'Teacher network not found yet…';return}
+ r.list.forEach(c=>{const b=document.createElement('button');b.textContent='Join '+c.name;b.onclick=()=>go(c.code);f.appendChild(b)})})}
+setInterval(scan,5000);
+function go(c){if(!/^\d{6}$/.test(c))return $('er').textContent='Enter 6 digits';want=true;code=c;$('er').textContent='Connecting…';
+ ask({t:'lookup',code:c},r=>{if(!r||!r.pid){want=false;return $('er').textContent='Class not found. Is your teacher ready?'}
+  tc=peer.connect(r.pid,{reliable:true});tc.on('open',()=>tc.send({t:'hello',name,sid,code:c}));tc.on('data',onT);
+  tc.on('close',()=>{const was=joined;joined=false;if(want){$('cs').textContent='Disconnected – reconnecting…';if(was)show('s3');setTimeout(()=>want&&go(code),3000)}})})}
+function onT(d){
+ if(d.t=='yes'){joined=true;localStorage.fm_sc=code;$('cn').textContent=d.cname;$('cs').textContent='Connected ✔';show('s3')}
+ else if(d.t=='no'){want=false;home();$('er').textContent='Could not join that class.'}
+ else if(d.t=='focus')focusOn=d.on;
+ else if(d.t=='policy')useBat=!!d.battery;
+ else if(d.t=='msg'){$('mt').textContent=d.text;$('mo').classList.remove('hide');fit($('mt'));try{new Audio('data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=').play()}catch(e){}}}
+function fit(e){let s=140;e.style.fontSize=s+'px';while((e.scrollHeight>e.clientHeight||e.scrollWidth>e.clientWidth)&&s>14){s-=4;e.style.fontSize=s+'px'}}
+function leave(){want=false;joined=false;try{tc.close()}catch(e){}localStorage.removeItem('fm_sc');home()}
+function forget(){localStorage.clear();location.reload()}
+function hb(){if(tc&&tc.open&&joined)tc.send({t:'hb',st:focusOn?(away?'away':'ok'):'idle',bat:useBat&&B?Math.round(B.level*100):undefined,chg:useBat&&B?B.charging:undefined})}
+const chk=()=>{away=document.hidden||!document.hasFocus();hb()};
+['visibilitychange','blur','focus'].forEach(e=>(e=='visibilitychange'?document:window).addEventListener(e,chk));
+const w=new Worker(URL.createObjectURL(new Blob(['setInterval(()=>postMessage(1),2000)'])));
+w.onmessage=()=>{const n=Date.now();if(n-last>10000&&tc&&tc.open)tc.send({t:'woke'});last=n;away=document.hidden||!document.hasFocus();hb()};
+if(name){home();if(code){want=true;setTimeout(()=>go(code),1500)}}
+</script></body></html>
