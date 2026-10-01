@@ -1,28 +1,57 @@
-<!doctype html><html><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><title>Teacher Dashboard</title>
+<!doctype html><html><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=color-scheme content="light dark"><title>Teacher Dashboard</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.4/peerjs.min.js"></script>
-<style>*{box-sizing:border-box}body{margin:0;font:15px/1.4 system-ui,Segoe UI,sans-serif;background:#eef1f8;color:#17213a}header{background:linear-gradient(135deg,#1e3a8a,#2f5bea);color:#fff;padding:14px 20px;font-size:18px;font-weight:700;display:flex;justify-content:space-between}main{padding:18px;max-width:1100px;margin:auto}.c{background:#fff;border-radius:14px;padding:16px;margin-bottom:14px;box-shadow:0 2px 8px #1e3a8a14}h3{margin:0 0 10px}button{background:#2f5bea;color:#fff;border:0;border-radius:8px;padding:8px 14px;cursor:pointer;font:inherit;font-weight:600;margin:2px}button:hover{filter:brightness(1.1)}button.g{background:#6b7280}button.r{background:#dc2626}button.x{background:#16a34a}input,textarea,select{padding:9px 11px;border:1px solid #cbd5e1;border-radius:8px;font:inherit}.pill{display:inline-block;padding:2px 10px;border-radius:99px;font-size:13px;font-weight:600}.pg{background:#dcfce7;color:#166534}.pr{background:#fee2e2;color:#991b1b}.pa{background:#fef3c7;color:#92400e}.pn{background:#e5e7eb;color:#374151}.hide{display:none!important}.ov{position:fixed;inset:0;background:linear-gradient(135deg,#1e3a8a,#2f5bea);display:flex;align-items:center;justify-content:center;z-index:9;padding:20px}.box{background:#fff;border-radius:16px;padding:28px;max-width:420px;width:100%;text-align:center}.bad{color:#b91c1c}.code{font-size:40px;font-weight:800;letter-spacing:6px;color:#1e3a8a}.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px}.st{border:1px solid #e2e8f0;border-left:6px solid #94a3b8;border-radius:10px;padding:10px;background:#fafbff}.sum{display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap}#tw{position:fixed;right:16px;bottom:16px;z-index:20;display:flex;flex-direction:column;gap:6px}.toast{background:#111827;color:#fff;padding:10px 16px;border-radius:10px}</style></head><body>
+<style>:root{color-scheme:light dark;--bg:#f2f4fa;--cd:#fff;--hd:#ffffffcc;--tx:#141b2d;--mu:#64718b;--bd:#e3e8f2;--ac:#4f46e5;--ok:#16a34a;--bad:#dc2626;--wa:#d97706;--sh:0 4px 20px #1e1b4b14}
+@media(prefers-color-scheme:dark){:root{--bg:#0d1120;--cd:#171c30;--hd:#171c30cc;--tx:#e8ecf8;--mu:#8e9ab5;--bd:#262d47;--sh:0 4px 20px #0006}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--tx);font:14.5px/1.45 -apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+header{position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:12px;padding:12px 22px;background:var(--hd);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);border-bottom:1px solid var(--bd);flex-wrap:wrap}header b{font-size:17px}.sp{flex:1}main{max-width:1180px;margin:auto;padding:22px}
+.c{background:var(--cd);border:1px solid var(--bd);border-radius:18px;padding:18px;margin-bottom:16px;box-shadow:var(--sh)}h3{margin:0 0 12px;font-size:16px}
+button{font:inherit;font-weight:600;border:0;border-radius:11px;padding:9px 16px;cursor:pointer;color:#fff;background:linear-gradient(135deg,#4f46e5,#7c3aed);transition:transform .1s,filter .15s}button:hover{filter:brightness(1.08)}button:active{transform:scale(.97)}button.g{background:var(--bd);color:var(--tx)}button.r{background:linear-gradient(135deg,#dc2626,#f43f5e)}button.x{background:linear-gradient(135deg,#16a34a,#22c55e)}button.sm{padding:5px 11px;font-size:13px}
+.in{font:inherit;color:var(--tx);background:var(--bg);border:1.5px solid var(--bd);border-radius:12px;padding:10px 14px;outline:0;transition:.15s;max-width:100%}.in:focus{border-color:var(--ac);box-shadow:0 0 0 4px #4f46e51f}
+.ck,.sw{position:relative;display:inline-flex;align-items:center;gap:8px;cursor:pointer;user-select:none;-webkit-user-select:none}.ck input,.sw input{position:absolute;opacity:0}
+.ck i{width:20px;height:20px;border-radius:7px;border:2px solid var(--mu);transition:.15s;display:grid;place-items:center;flex:none}.ck input:checked+i{background:var(--ac);border-color:var(--ac)}.ck input:checked+i:after{content:"";width:5px;height:10px;border:solid #fff;border-width:0 2.5px 2.5px 0;transform:rotate(45deg) translate(-1px,-1px)}
+.sw i{width:40px;height:23px;border-radius:99px;background:var(--bd);position:relative;transition:.2s;flex:none}.sw i:after{content:"";position:absolute;top:3px;left:3px;width:17px;height:17px;border-radius:50%;background:#fff;box-shadow:0 1px 3px #0004;transition:.2s}.sw input:checked+i{background:var(--ok)}.sw input:checked+i:after{left:20px}.sw input:disabled+i{opacity:.4}
+.pill{display:inline-block;padding:3px 11px;border-radius:99px;font-size:12.5px;font-weight:700}.pg{background:#16a34a22;color:var(--ok)}.pr{background:#dc262622;color:var(--bad)}.pa{background:#d9770622;color:var(--wa)}.pn{background:var(--bd);color:var(--mu)}
+.tabs{display:inline-flex;background:var(--bg);border-radius:13px;padding:4px}.tabs button{background:0;color:var(--mu)}.tabs button.on{background:var(--cd);color:var(--tx);box-shadow:0 1px 4px #0002}
+.hide{display:none!important}.ov{position:fixed;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;padding:20px;background:radial-gradient(circle at 20% 20%,#6366f1,#312e81 70%)}.box{background:var(--cd);border-radius:22px;padding:32px;max-width:440px;width:100%;text-align:center;box-shadow:0 20px 60px #0006}.bad{color:var(--bad)}.mu{color:var(--mu)}.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.code{font-size:38px;font-weight:800;letter-spacing:6px;color:var(--ac)}.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(235px,1fr));gap:12px}.two{display:grid;grid-template-columns:1fr 1fr;gap:16px}@media(max-width:900px){.two{grid-template-columns:1fr}}
+.st{border:1px solid var(--bd);border-top:4px solid var(--mu);border-radius:14px;padding:12px;background:var(--cd)}.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:16px}.tile{background:var(--cd);border:1px solid var(--bd);border-radius:16px;padding:14px;box-shadow:var(--sh)}.tile b{display:block;font-size:30px;letter-spacing:-1px}
+.bar{height:8px;background:var(--bd);border-radius:9px;overflow:hidden}.bar i{display:block;height:100%;background:var(--ac);border-radius:9px}.bt{display:inline-block;width:32px;height:14px;border:2px solid var(--mu);border-radius:5px;vertical-align:-2px;overflow:hidden}.bt i{display:block;height:100%}
+.chip{background:var(--bg);color:var(--mu);border:1.5px solid var(--bd)}.chip.on{background:var(--ac);color:#fff;border-color:var(--ac)}.fd{max-height:300px;overflow:auto}.fd div{padding:6px 0;border-bottom:1px solid var(--bd)}
+#tw{position:fixed;right:18px;bottom:18px;z-index:60;display:flex;flex-direction:column;gap:8px}.toast{background:#111827;color:#fff;padding:12px 18px;border-radius:12px;box-shadow:0 8px 24px #0006;font-weight:600}</style></head><body>
 <div class=ov id=ov><div class=box><h2>👩‍🏫 Teacher Dashboard</h2>
-<div id=lg><p><b>Step 1.</b> Allow your school network</p><button onclick=runLan()>Allow local network</button><p id=ls></p>
-<div id=l2 class=hide><p><b>Step 2.</b> Enter the 6-digit code from your admin</p><input id=cd maxlength=6 inputmode=numeric placeholder="000000" style="font-size:26px;width:180px;text-align:center" onkeydown="event.key=='Enter'&&login()"><br><br><button class=x onclick=login()>Sign in</button></div></div>
+<div id=lg><p><b>Step 1</b> · Allow your school network</p><button onclick=runLan()>Allow local network</button><p id=ls class=mu></p>
+<div id=l2 class=hide><p><b>Step 2</b> · Enter the 6-digit code from your admin</p><input class=in id=cd maxlength=6 inputmode=numeric placeholder="000000" style="font-size:28px;width:200px;text-align:center;letter-spacing:6px" onkeydown="event.key=='Enter'&&login()"><br><br><button class=x onclick=login()>Sign in</button></div></div>
 <p id=ovt></p><p id=err class=bad></p></div></div>
-<header><span>👩‍🏫 Teacher Dashboard</span><span id=who></span></header>
+<header><b>👩‍🏫 Focus</b><span id=hn class="row hide"><select class=in id=cs onchange="pick(this.value)" style="padding:7px 12px"></select><button class="sm g" onclick=addC()>+ Class</button><span class=tabs id=tb></span></span><span class=sp></span><span class=mu id=who></span></header>
 <main id=mn class=hide>
-<div class=c><select id=cs onchange="pick(this.value)"></select><button onclick=addC()>+ New class</button><button class=g onclick=delC()>Remove class</button><button class=g onclick=wipe()>Delete all saved classes &amp; students</button><div id=cb></div></div>
-<div class=c><div class=sum id=sm></div><div class=grid id=rt></div></div>
-<div class=c><h3>Send a message</h3><small>Shown large on student screens. Tick students above to message a group or one student.</small><br>
-<textarea id=mt rows=2 style="width:100%;margin-top:6px" placeholder="Type your message"></textarea><button onclick="msg(0)">Send to whole class</button><button onclick="msg(1)">Send to ticked students</button><button class=g onclick=tickAll()>Tick / untick all</button></div>
+<section id=vd><div class=tiles id=tl></div>
+<div class=two><div class=c><h3>Class controls</h3><div id=cb></div></div><div class=c><h3>Activity</h3><div class=fd id=fd></div></div></div>
+<div class=c><h3>Focus score by student</h3><div id=lb></div></div></section>
+<section id=vs class=hide><div class=c><div class=row><input class=in id=q placeholder="🔍 Search students" oninput="q=this.value.toLowerCase();draw()" style="flex:1;min-width:180px"><span id=fc class=row></span><button class="sm g" onclick=tickAll()>Select all</button></div></div><div class=grid id=rt></div></section>
+<section id=vm class=hide><div class=c><h3>Send a message</h3><p class=mu>Shown large on student screens. <b id=sel>0 selected</b> in the Students tab.</p>
+<div class=row id=qc style="margin-bottom:10px"></div>
+<textarea class=in id=mt rows=3 style="width:100%;resize:vertical" placeholder="Type your message… (⌘/Ctrl + Enter sends to the class)" onkeydown="(event.metaKey||event.ctrlKey)&&event.key=='Enter'&&msg(0)"></textarea>
+<div class=row style="margin-top:10px"><button onclick="msg(0)">Send to whole class</button><button class=g onclick="msg(1)">Send to selected students</button></div></div></section>
 </main><div id=tw></div>
 <script>
+const MOB=/Android|iPhone|iPod|iPad|Mobile|Windows Phone/i.test(navigator.userAgent)||(/Macintosh/.test(navigator.userAgent)&&navigator.maxTouchPoints>1);
+if(MOB){document.body.innerHTML='<div class=ov><div class=box><h2>💻 Computers only</h2><p class=mu>This page works on laptops and desktop computers, not phones or tablets.</p></div></div>';throw 0}
 const PX='awtyfm1',$=i=>document.getElementById(i),esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const set=(e,h)=>{if(e._h!==h){e._h=h;e.innerHTML=h}};
+const sw=(l,on,fn,d)=>`<label class=sw style="margin:6px 18px 6px 0"><input type=checkbox ${on?'checked':''} ${d?'disabled':''} onchange="${fn}"><i></i><span>${l}</span></label>`;
 function lanCheck(cb){let d=0;try{const a=new AbortController();setTimeout(()=>a.abort(),1500);fetch('http://192.168.0.1/',{mode:'no-cors',signal:a.signal,targetAddressSpace:'local'}).catch(()=>{})}catch(e){}
  try{const p=new RTCPeerConnection();let n=0;p.createDataChannel('x');p.onicecandidate=e=>{if(e.candidate&&/typ host/.test(e.candidate.candidate))n++};p.createOffer().then(o=>p.setLocalDescription(o));setTimeout(()=>{p.close();if(!d){d=1;cb(n)}},2500)}catch(e){cb(0)}}
-function runLan(){$('ls').textContent='Checking… (accept the browser prompt if it appears)';lanCheck(n=>{$('ls').innerHTML=n?'✅ Local network ready':'⚠️ Could not confirm. Click the lock icon in the address bar → Site settings → Local network → Allow, then press the button again. You can still continue.';$('l2').classList.remove('hide')})}
-let classes=JSON.parse(localStorage.fm_tc||'[]'),known=JSON.parse(localStorage.fm_ts||'{}'),code='',pid='',ac=null,authed=false,pol={hidden:[]},cur=classes[0]&&classes[0].id,tname='',last=0,err='';
+function runLan(){$('ls').textContent='Checking… (accept the browser prompt if it appears)';lanCheck(n=>{$('ls').innerHTML=n?'✅ Local network ready':'⚠️ Could not confirm. Click the lock icon in the address bar → Site settings → Local network → Allow, then try again. You can still continue.';$('l2').classList.remove('hide')})}
+let classes=JSON.parse(localStorage.fm_tc||'[]'),known=JSON.parse(localStorage.fm_ts||'{}'),code='',pid='',ac=null,authed=false,pol={hidden:[]},cur=null,tname='',last=0,err='',view='d',filt='all',q='',alertsOn=true,feed=[];
+classes.forEach(k=>k.eyes=false);cur=classes[0]&&classes[0].id;
 const STU={},ticks=new Set(),col={pg:'#22c55e',pr:'#ef4444',pa:'#f59e0b',pn:'#94a3b8'};
 const sv=()=>{localStorage.fm_tc=JSON.stringify(classes);localStorage.fm_ts=JSON.stringify(known);sync()};
 function toast(m){const d=document.createElement('div');d.className='toast';d.textContent=m;$('tw').appendChild(d);setTimeout(()=>d.remove(),4500)}
-function beep(){try{const a=new AudioContext(),o=a.createOscillator();o.connect(a.destination);o.frequency.value=660;o.start();setTimeout(()=>{o.stop();a.close()},150)}catch(e){}}
+function beep(){try{const a=new(window.AudioContext||window.webkitAudioContext)(),o=a.createOscillator();o.connect(a.destination);o.frequency.value=660;o.start();setTimeout(()=>{o.stop();a.close()},150)}catch(e){}}
+const hid=n=>(pol.hidden||[]).some(h=>h.toLowerCase()==n.toLowerCase());
+function ev(k,name,text,cls,notify){if(authed&&ac&&ac.open)ac.send({t:'ev',cls,text:tname+' · '+k.name+': '+name+' '+text});
+ if(hid(name))return;feed.unshift({t:new Date(),x:name+' '+text,c:cls});feed.length=Math.min(feed.length,40);
+ if(notify&&!pol.paused&&alertsOn){toast((cls=='pr'?'⚠️ ':'')+name+' '+text);beep()}}
 const peer=new Peer();peer.on('open',i=>pid=i);peer.on('disconnected',()=>{try{peer.reconnect()}catch(e){}});peer.on('error',()=>{});
 function login(){const v=$('cd').value.trim();if(!/^\d{6}$/.test(v)){err='Enter 6 digits';return ui()}code=v;err='';ui();if(ac&&ac.open)ac.send({t:'auth',code,pid});else{last=0;tick()}}
 function tick(){if(!code||!pid||(ac&&ac.open)||Date.now()-last<8000)return;last=Date.now();try{ac&&ac.close()}catch(e){}
@@ -32,46 +61,61 @@ function adm(d){
  if(d.t=='authr'){if(d.ok){authed=true;tname=d.name;err='';sync()}else{authed=false;code='';err=d.why}ui()}
  else if(d.t=='policy'){pol=d;ui();stuAll({t:'policy',battery:pol.battery})}
  else if(d.t=='kick'){authed=false;code='';err='Access removed by admin';pol={hidden:[]};ui()}
- else if(d.t=='amsg')send(d.cid,d.ids,d.text,'Admin')}
-function ui(){const w=!authed||pol.paused||!code;$('ov').classList.toggle('hide',!w);$('mn').classList.toggle('hide',w);
+ else if(d.t=='amsg')send(d.cid,d.ids,d.text,'Admin')
+ else if(d.t=='bcast')classes.forEach(k=>send(k.id,null,d.text,'Admin'))
+ else if(d.t=='cmd'){(d.cid=='*'?classes.filter(k=>k.active):classes.filter(k=>k.id==d.cid)).forEach(k=>{if(d.a=='focus')setF(k,d.on);else if(d.a=='eyes')setE(k,d.on);else if(d.a=='close'){k.active=false;sv()}else if(d.a=='kick')kickS(k.id,d.sid)});drawBar()}}
+function ui(){const w=!authed||pol.paused||!code;$('ov').classList.toggle('hide',!w);$('mn').classList.toggle('hide',w);$('hn').classList.toggle('hide',w);
  $('lg').classList.toggle('hide',!!code);$('err').textContent=err;$('who').textContent=authed?tname:'';
  $('ovt').textContent=!code?'':!authed?'⏳ Waiting for the admin console to come online…':pol.paused?'⏸️ Viewing and control paused by admin':'';
- if(!w)drawBar()}
-function sync(){if(authed&&ac&&ac.open)ac.send({t:'classes',list:classes.map(c=>({id:c.id,name:c.name,cc:c.code,auto:c.auto,active:c.active}))})}
+ if(!w){drawBar();setView(view)}}
+function sync(){if(authed&&ac&&ac.open)ac.send({t:'classes',list:classes.map(c=>({id:c.id,name:c.name,cc:c.code,auto:c.auto,active:c.active,focus:c.focus,eyes:c.eyes}))})}
 const cl=()=>classes.find(c=>c.id==cur);
+function setView(v){view=v;['d','s','m'].forEach(x=>$('v'+x).classList.toggle('hide',x!=v));
+ set($('tb'),[['d','📊 Dashboard'],['s','👥 Students'],['m','💬 Message']].map(([k,l])=>`<button class="${k==v?'on':''}" onclick="setView('${k}')">${l}</button>`).join(''));draw()}
 function addC(){const n=prompt('Class name?');if(!n)return;let c;do c=String(Math.floor(100000+Math.random()*900000));while(classes.some(x=>x.code==c));
- const k={id:'c'+Date.now(),name:n.slice(0,40),code:c,active:true,auto:true,focus:false};classes.push(k);cur=k.id;sv();drawBar()}
+ const k={id:'c'+Date.now(),name:n.slice(0,40),code:c,active:true,auto:true,focus:false,eyes:false};classes.push(k);cur=k.id;sv();drawBar()}
 function delC(){if(cl()&&confirm('Remove this class?')){classes=classes.filter(c=>c.id!=cur);delete known[cur];cur=classes[0]&&classes[0].id;sv();drawBar()}}
 function wipe(){if(confirm('Delete all saved classes and students on this computer?')){localStorage.removeItem('fm_tc');localStorage.removeItem('fm_ts');location.reload()}}
 function pick(v){cur=v;ticks.clear();drawBar()}
-function tog(k){const c=cl();c[k]=!c[k];if(k=='focus')stuAll({t:'focus',on:c.focus},c.id);sv();drawBar()}
+function setF(k,on){k.focus=on;if(on)for(const i in STU[k.id]||{}){STU[k.id][i].on=0;STU[k.id][i].tot=0}stuAll({t:'focus',on},k.id);sv()}
+function setE(k,on){if(on&&pol.eyes===false)return;k.eyes=on;stuAll({t:'eyes',on},k.id);sv()}
+function tog(f){const c=cl();if(f=='alerts')alertsOn=!alertsOn;else if(f=='focus')setF(c,!c.focus);else if(f=='eyes')setE(c,!c.eyes);else{c[f]=!c[f];sv()}drawBar()}
+function kickS(cid,sid){const s=STU[cid]&&STU[cid][sid];if(s&&s.c){try{s.c.send({t:'no',why:'removed'});const c=s.c;setTimeout(()=>c.close(),300)}catch(e){}}if(STU[cid])delete STU[cid][sid];if(known[cid])delete known[cid][sid];sv()}
 function drawBar(){set($('cs'),classes.map(c=>`<option value="${c.id}" ${c.id==cur?'selected':''}>${esc(c.name)}</option>`).join(''));const c=cl();
- set($('cb'),c?`<p>Class code <span class=code>${c.code}</span></p>
- <button class="${c.active?'x':'g'}" onclick="tog('active')">Class open: ${c.active?'ON':'OFF'}</button>
- <button class="${c.auto?'x':'g'}" onclick="tog('auto')">Auto-find: ${c.auto?'ON':'OFF'}</button>
- <button class="${c.focus?'r':'g'}" onclick="tog('focus')">Focus monitoring: ${c.focus?'ON':'OFF'}</button>`:'<p>Create a class to begin.</p>')}
+ set($('cb'),c?`<div class=mu>Class code</div><div class=code>${c.code}</div><div style="margin:8px 0">${sw('Class open',c.active,"tog('active')")}${sw('Auto-find',c.auto,"tog('auto')")}<br>${sw('Focus monitoring',c.focus,"tog('focus')")}${sw('👀 Eyes up on the board',c.eyes,"tog('eyes')",pol.eyes===false)}${sw('Alert pop-ups &amp; sound',alertsOn,"tog('alerts')")}</div>
+ <button class="sm r" onclick=delC()>Remove class</button> <button class="sm g" onclick=wipe()>Delete all saved data</button>`:'<p>Create a class with “+ Class” to begin.</p>');draw()}
 peer.on('connection',c=>{let s;c.on('data',d=>{
  if(d.t=='hello'){const k=classes.find(x=>x.code==d.code&&x.active);if(!k||!authed||pol.paused){c.send({t:'no'});setTimeout(()=>c.close(),300);return}
-  const m=STU[k.id]=STU[k.id]||{};s=m[d.sid]=Object.assign(m[d.sid]||{left:0},{name:String(d.name).slice(0,40),c,st:'ok',ts:Date.now(),k:k.id});
-  (known[k.id]=known[k.id]||{})[d.sid]=s.name;sv();c.send({t:'yes',cname:k.name});c.send({t:'focus',on:!!k.focus});c.send({t:'policy',battery:pol.battery})}
- else if(s&&d.t=='hb'){const w=s.st;s.st=d.st;s.bat=d.bat;s.chg=d.chg;s.ts=Date.now();
-  if(d.st=='away'&&w!='away'){s.left++;if(!hid(s.name)){toast('⚠️ '+s.name+' left the page');beep()}}}
- else if(s&&d.t=='woke')s.note='Woke from sleep '+new Date().toLocaleTimeString()});
+  const m=STU[k.id]=STU[k.id]||{};s=m[d.sid]=Object.assign(m[d.sid]||{left:0,on:0,tot:0},{name:String(d.name).slice(0,40),c,st:'ok',ts:Date.now(),k:k.id,asl:0});
+  (known[k.id]=known[k.id]||{})[d.sid]=s.name;sv();c.send({t:'yes',cname:k.name,focus:!!k.focus,eyes:!!k.eyes,bat:pol.battery!==false});ev(k,s.name,'joined','pg')}
+ else if(s&&d.t=='hb'){const w=s.st,k=classes.find(x=>x.id==s.k);s.st=d.st;s.bat=d.bat;s.nb=d.nb;s.ts=Date.now();
+  if(k&&d.st=='away'&&w!='away'){s.left++;ev(k,s.name,'left the page','pr',1)}else if(k&&d.st=='ok'&&w=='away')ev(k,s.name,'is back on the page','pg')}
+ else if(s&&d.t=='woke'){s.note='Woke from sleep '+new Date().toLocaleTimeString()}});
  c.on('close',()=>{if(s&&s.c===c)s.c=null})});
 function stuAll(m,cid){for(const id in STU)if(!cid||id==cid)for(const s in STU[id])if(STU[id][s].c&&STU[id][s].c.open)STU[id][s].c.send(m)}
-const hid=n=>(pol.hidden||[]).some(h=>h.toLowerCase()==n.toLowerCase());
 function status(k,s){if(!s||!s.c||!s.c.open)return['Not connected','pa'];if(!k.focus)return['Connected','pg'];
  if(Date.now()-s.ts>10000)return['💤 Laptop asleep / offline','pr'];return s.st=='away'?['Left the page / changed window','pr']:['On page','pg']}
 const list=k=>Object.keys(known[k.id]||{}).map(i=>({id:i,name:known[k.id][i],s:(STU[k.id]||{})[i]}));
+function batt(x){if(x.h||pol.battery===false||!x.s||!x.s.c)return'';if(x.s.nb)return'🔋 n/a (browser)';if(x.s.bat==null)return'';const p=x.s.bat;return`<span class=bt><i style="width:${p}%;background:${p<20?'var(--bad)':p<50?'var(--wa)':'var(--ok)'}"></i></span> <b>${p}%</b>`}
+const tk=(i,v)=>{v?ticks.add(i):ticks.delete(i);draw()};
 function tickAll(){const k=cl();if(!k)return;const L=list(k);if(ticks.size==L.length)ticks.clear();else L.forEach(x=>ticks.add(x.id));draw()}
-function draw(){const k=cl();if(!k||$('mn').classList.contains('hide'))return;const L=list(k);let g=0,r=0,n=0;
- const cards=L.map(x=>{const h=hid(x.name),[t,c]=status(k,x.s);if(!h){c=='pg'?g++:c=='pr'?r++:n++}else n++;const cc=h?'pn':c;
- return`<div class=st style="border-left-color:${col[cc]}"><label><input type=checkbox ${ticks.has(x.id)?'checked':''} onchange="this.checked?ticks.add('${x.id}'):ticks.delete('${x.id}')"> <b>${esc(x.name)}</b></label><div style="margin:6px 0"><span class="pill ${cc}">${h?'Hidden by admin':t}</span></div><small>${!h&&x.s&&x.s.bat!=null?'🔋 '+x.s.bat+'%'+(x.s.chg?' ⚡ charging':''):''}${!h&&k.focus&&x.s?' · left page '+x.s.left+'×':''}<br>${!h&&k.focus&&x.s?esc(x.s.note||''):''}</small></div>`}).join('');
- set($('sm'),`<span class="pill pg">✅ ${g} OK</span><span class="pill pr">⚠️ ${r} need attention</span><span class="pill pn">⚪ ${n} not connected / hidden</span>`);
- set($('rt'),cards||'<p>No students yet. Share the class code or turn on auto-find.</p>')}
+function draw(){const k=cl();if(!k||$('mn').classList.contains('hide'))return;
+ const L=list(k).map(x=>{const h=hid(x.name),[t,c]=status(k,x.s);return{...x,h,t,c:h?'pn':c,pc:x.s&&x.s.tot>3?Math.round(x.s.on*100/x.s.tot):null}});
+ $('sel').textContent=ticks.size+' selected';
+ if(view=='d'){const ok=L.filter(x=>x.c=='pg').length,att=L.filter(x=>x.c=='pr').length,P=L.filter(x=>x.pc!=null&&!x.h),avg=P.length?Math.round(P.reduce((a,x)=>a+x.pc,0)/P.length)+'%':'—',
+  low=pol.battery===false?'—':L.filter(x=>!x.h&&x.s&&x.s.c&&x.s.bat!=null&&x.s.bat<20).length;
+  set($('tl'),[['👥',L.length,'Students'],['✅',ok,'On page / OK'],['⚠️',att,'Need attention'],['🎯',avg,'Avg focus'],['🔋',low,'Low battery']].map(([i,n,l])=>`<div class=tile>${i}<b>${n}</b><span class=mu>${l}</span></div>`).join(''));
+  set($('fd'),feed.map(e=>`<div><span class=mu>${e.t.toLocaleTimeString()}</span> ${e.c=='pr'?'⚠️':'•'} ${esc(e.x)}</div>`).join('')||'<span class=mu>No activity yet.</span>');
+  set($('lb'),k.focus?(P.length?P.sort((a,b)=>a.pc-b.pc).map(x=>`<div class=row style="margin:6px 0"><span style="width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(x.name)}</span><div class=bar style="flex:1"><i style="width:${x.pc}%;background:${x.pc<60?'var(--bad)':x.pc<85?'var(--wa)':'var(--ok)'}"></i></div><b style="width:44px;text-align:right">${x.pc}%</b></div>`).join(''):'<span class=mu>Collecting data…</span>'):'<span class=mu>Turn on Focus monitoring to see scores.</span>')}
+ if(view=='s'){const F=[['all','All'],['pr','Attention'],['pg','OK']];set($('fc'),F.map(([f,l])=>`<button class="sm chip ${filt==f?'on':''}" onclick="filt='${f}';draw()">${l}</button>`).join(''));
+  const V=L.filter(x=>(filt=='all'||x.c==filt)&&x.name.toLowerCase().includes(q));
+  set($('rt'),V.map(x=>`<div class=st style="border-top-color:${col[x.c]}"><label class=ck><input type=checkbox ${ticks.has(x.id)?'checked':''} onchange="tk('${x.id}',this.checked)"><i></i><b>${esc(x.name)}</b></label><div style="margin:8px 0"><span class="pill ${x.c}">${x.h?'Hidden by admin':x.t}</span></div><div class=mu style="font-size:13px">${batt(x)}${!x.h&&k.focus&&x.s?`<br>Focus ${x.pc==null?'—':x.pc+'%'} · left page ${x.s.left}×<br>${esc(x.s.note||'')}`:''}</div></div>`).join('')||'<p class=mu>No students match.</p>')}
+ if(view=='m')set($('qc'),['👀 Eyes up please','⏰ 5 minutes left','📖 Open your books','🤫 Quiet please'].map(t=>`<button class="sm chip" onclick="$('mt').value='${t}'">${t}</button>`).join(''))}
 function send(cid,ids,text,from){for(const i in STU[cid]||{}){const s=STU[cid][i];if(s.c&&s.c.open&&(!ids||ids.includes(i)))s.c.send({t:'msg',text,from})}}
-function msg(x){const t=$('mt').value.trim(),k=cl();if(!t||!k)return;if(x&&!ticks.size)return toast('Tick one or more students first');send(k.id,x?[...ticks]:null,t,tname||'Teacher');$('mt').value='';toast('✅ Message sent')}
-setInterval(draw,1000);
-setInterval(()=>{if(authed&&ac&&ac.open)classes.filter(k=>k.active).forEach(k=>ac.send({t:'roster',cid:k.id,students:list(k).map(x=>({id:x.id,name:x.name,st:status(k,x.s)[0],bat:x.s&&x.s.bat,chg:x.s&&x.s.chg,left:x.s?x.s.left:0}))}))},2000);
+function msg(x){if(pol.msgs===false)return toast('Messaging is turned off by the admin');const t=$('mt').value.trim(),k=cl();if(!t||!k)return;if(x&&!ticks.size)return toast('Select students in the Students tab first');send(k.id,x?[...ticks]:null,t,tname||'Teacher');$('mt').value='';toast('✅ Message sent')}
+setInterval(()=>{const n=Date.now();classes.forEach(k=>{const m=STU[k.id]||{};for(const i in m){const s=m[i];if(!s.c||!s.c.open)continue;const asl=k.focus&&n-s.ts>10000;
+ if(k.focus){s.tot++;if(s.st!='away'&&!asl)s.on++}
+ if(asl&&!s.asl){s.asl=1;ev(k,s.name,'laptop went to sleep or went offline','pr',1)}else if(!asl&&s.asl){s.asl=0;ev(k,s.name,'is back online','pg')}}});draw()},1000);
+setInterval(()=>{if(authed&&ac&&ac.open)classes.filter(k=>k.active).forEach(k=>ac.send({t:'roster',cid:k.id,students:list(k).map(x=>({id:x.id,name:x.name,st:status(k,x.s)[0],bat:x.s&&x.s.bat,nb:x.s&&x.s.nb,pct:x.s&&x.s.tot>3?Math.round(x.s.on*100/x.s.tot):null,left:x.s?x.s.left:0}))}))},2000);
 ui();
 </script></body></html>
