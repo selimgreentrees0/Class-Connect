@@ -1,16 +1,9 @@
-# Class Connect 2.0 (local network)
+# Class Connect 2.0 — static, peer-to-peer, no server of your own
 
-## Run
-1. Install Node 18+ on the admin computer, then in this folder: `npm install` then `npm start`.
-2. The console prints three addresses (students / teachers / admin). Open them from any computer on the same network.
-3. Each device must accept the one-time certificate warning (Advanced → Proceed). HTTPS is required by browsers for screen sharing.
-4. Admin default password: `skyblue` (change it in the Admin page). Create teacher codes there.
+There is nothing to install or run. Put the 4 files (index.html, teacher.html, admin.html, common.js, style.css) on any static HTTPS host
+(GitHub Pages, Netlify, school web space) or just open them from a folder in Chrome/Edge (file:// counts as a secure context, so screen sharing works).
 
-Nothing leaves your network: pages, signaling and screen video are all served/relayed locally (no cloud PeerJS, no STUN).
-
-## Notes
-- Screen sharing requires **Entire Screen** (validated in Chrome/Edge). Window/tab choices are rejected.
-- Previews are ~560px at a few fps; expanding a student switches that one stream to up to 1920px/20-30fps. Only the class on screen streams; other tabs/classes send nothing.
-- Admin quality cap: Eco / Balanced / Max.
-- Admin login stores a token on that device; while the teacher view is open there, the student page is locked.
-- If devices cannot connect on a managed network, allow peer-to-peer WebRTC on the LAN (or disable Chrome's "Anonymize local IPs exposed by WebRTC" flag).
+- Students: index.html · Teachers: teacher.html · Admin: admin.html (default password `skyblue`, change it in the page)
+- The only outside piece is PeerJS's free public broker, used for the first handshake (like the original app). Screen video and messages go
+  directly between computers; with no STUN/TURN configured, they stay on the local network.
+- Screen sharing needs **Entire Screen** (Chrome/Edge). Previews ~560px/few fps; expanding a student switches that stream to up to 1920px.
