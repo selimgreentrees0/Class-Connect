@@ -32,3 +32,23 @@ function Expand(o){const m=document.createElement('div');m.className='xp hide';
   refresh(){if(!id)return;const s=o.info(id);if(!s)return api.close();const b=m.querySelector('b');if(b.textContent!==s.name)b.textContent=s.name;const p=m.querySelector('.pill');p.className='pill '+s.cls;p.textContent=s.txt;if(v.srcObject!==(s.stream||null)){v.srcObject=s.stream||null;v.play().catch(()=>{})}}};
  m.onclick=e=>{const a=e.target.dataset.a;if(e.target===m||a=='c')api.close();else if(a=='r'){if(o.rm(id))api.close()}else if(a=='p'||a=='n'){const L=o.ids(),k=L.indexOf(id);if(L.length>1)api.open(L[(k+(a=='n'?1:L.length-1))%L.length])}};
  addEventListener('keydown',e=>{if(id&&e.key=='Escape')api.close()});return api}
+// First-open local-network permission. Chrome/Edge ask "Look for and connect to devices on your local network";
+// we trigger that prompt up front (from a click) so screen sharing / peer links work right away. Remembered after the first time.
+(()=>{if(window.NOGO)return;
+ const K='cc_lan_ok',st=async()=>{try{return(await navigator.permissions.query({name:'local-network-access'})).state}catch(e){try{return(await navigator.permissions.query({name:'local-network'})).state}catch(x){return'unknown'}}};
+ const probe=async()=>{
+  const t=(u,sp)=>{const c=new AbortController();setTimeout(()=>c.abort(),2500);return fetch(u,{mode:'no-cors',cache:'no-store',targetAddressSpace:sp,signal:c.signal}).catch(()=>{})};
+  await Promise.all([t('http://192.168.0.1/','local'),t('http://10.0.0.1/','local'),t('http://localhost:9/','loopback')]);
+  try{const pc=new RTCPeerConnection({iceServers:[]});pc.createDataChannel('x');await pc.setLocalDescription(await pc.createOffer());await new Promise(r=>{pc.onicecandidate=e=>{if(!e.candidate)r()};setTimeout(r,1500)});pc.close()}catch(e){}
+ };
+ const show=denied=>{const o=document.createElement('div');o.className='ov';o.style.zIndex=99999;
+  o.innerHTML='<div class=box><h2>🌐 Allow local network access</h2><p class=mu>Class Connect connects computers in your school directly to each other. When your browser asks to <b>“look for and connect to devices on your local network”</b>, choose <b>Allow</b>.</p>'+
+  (denied?'<p class=mu style="color:#d33">Access was blocked. Click the 🔒 icon next to the address bar → Site settings → set <b>Local network access</b> to Allow, then reload.</p>':'')+
+  '<button id=lanb>Continue</button></div>';document.body.appendChild(o);
+  $('lanb').onclick=async()=>{$('lanb').disabled=true;$('lanb').textContent='Waiting for permission…';await probe();const s=await st();
+   if(s=='denied'){o.remove();show(true);return}try{localStorage.setItem(K,'1')}catch(e){}o.remove()}};
+ addEventListener('DOMContentLoaded',async()=>{const s=await st();let seen=0;try{seen=localStorage.getItem(K)}catch(e){}
+  if(s=='granted'||(seen&&s!='denied')||s=='unknown'&&seen)return;
+  if(s=='unknown'&&!seen&&!(window.isSecureContext&&/Chrome|Edg/.test(navigator.userAgent)))return;
+  show(s=='denied')})
+})();
