@@ -7,10 +7,11 @@
 #mt{flex:1;overflow:hidden;display:flex;align-items:center;justify-content:center;font-weight:800;word-break:break-word;line-height:1.15}#mf{opacity:.8;margin-bottom:8px}.fb{background:#d9770622;color:var(--wa);border-radius:12px;padding:9px 12px;font-size:13px;margin:12px 0}</style></head><body>
 <div class=box id=s1><h2>👋 Welcome</h2><p class=mu>What is your name? Your teacher will see this.</p><input class=in id=nm placeholder="Your name" onkeydown="event.key=='Enter'&&start()"><button class=x onclick=start()>Continue</button></div>
 <div class="box hide" id=s2><h2>Hi <span id=hi></span>! 👋</h2><p class=mu>Classes on your network</p><div id=fl>Looking…</div><hr style="border:0;border-top:1px solid var(--bd);margin:18px 0"><p class=mu>Or type your 6-digit class code</p><input class=in id=cd maxlength=6 inputmode=numeric placeholder="000000" style="font-size:26px;letter-spacing:6px" onkeydown="event.key=='Enter'&&go($('cd').value.trim())"><button class=x onclick="go($('cd').value.trim())">Join class</button><p id=er class=bad></p><button class=g onclick=forget()>Forget my info</button></div>
-<div class="box hide" id=s3><span class="pill pg">Connected</span><h2 id=cn style="margin-top:12px"></h2><p id=cs class=mu>You're in class.</p><div class=hide id=ss></div><div class="fb hide" id=fb>👁️ Focus monitoring is ON — your teacher can see if you leave this page.</div><button class=g onclick=leave()>Leave class</button></div>
+<div class="box hide" id=s3><span class="pill pg">Connected</span><h2 id=cn style="margin-top:12px"></h2><p id=cs class=mu>You're in class.</p><div class=hide id=ss></div><div class="fb hide" id=fb>👁️ Focus monitoring is ON — your teacher can see if you leave this page.</div><button class="g hide" id=pb onclick=openPip()>📌 Open floating display</button> <button class=g onclick=leave()>Leave class</button></div>
 <div id=ey class="full hide"><div style="font-size:110px">👀</div><h1 style="font-size:52px;margin:10px 0">Eyes up on the board</h1><p style="opacity:.7;font-size:20px">Your teacher will release this screen.</p></div>
 <div id=sh class="full hide"><div style="font-size:90px">🖥️</div><h1 style="font-size:40px;margin:10px 0">Screen sharing required</h1><p style="opacity:.8;font-size:18px;max-width:520px">Your teacher needs you to share your <b>entire screen</b>. In the picker choose <b>Entire Screen</b> — not a window or tab.</p><button class=x onclick=startShare() style="font-size:20px;padding:14px 28px;margin:14px">Share my entire screen</button><p id=she style="color:#fecaca;font-weight:600;min-height:24px"></p></div>
 <div id=mo class="full hide"><div id=mf></div><div id=mt></div><button class=x onclick="$('mo').classList.add('hide')" style="font-size:22px;margin-top:14px">OK</button></div>
+<div id=ap class="full hide" style="z-index:100;background:#111827"><div style="font-size:80px">⏸️</div><h1>System paused</h1><p id=apt style="opacity:.8;font-size:18px;max-width:520px"></p></div>
 <div id=blk class="full hide"><div style="font-size:80px">🔒</div><h1>Teacher view is open</h1><p style="opacity:.75;font-size:18px;max-width:480px">This device is signed in as an admin and the teacher view is open, so the student page is locked. Close the teacher view to continue.</p></div>
 <script>
 if(window.NOGO)throw 0;
@@ -36,14 +37,17 @@ function go(c){if(blocked)return;if(!/^\d{6}$/.test(c))return $('er').textConten
   setTimeout(()=>{if(!joined&&tc===mine){busy=false;try{mine.close()}catch(e){}if(want){$('er').textContent='Teacher not reachable, retrying…';setTimeout(()=>want&&go(code),2000)}}},7000);
   tc.on('close',()=>{if(tc!==mine)return;const was=joined;joined=false;busy=false;drop(mine.peer);if(want&&was){$('cs').textContent='Disconnected — reconnecting…';shUi();setTimeout(()=>want&&go(code),3000)}})})}
 function onT(d){
- if(d.t=='yes'){joined=true;busy=false;focusOn=!!d.focus;needSh=!!d.share;cap=d.cap||'bal';localStorage.fm_sc=code;$('cn').textContent=d.cname;$('cs').textContent="You're in class.";$('er').textContent='';show('s3');eyes(d.eyes);fbar();shUi();hb()}
+ if(d.t=='yes'){joined=true;busy=false;focusOn=!!d.focus;needSh=!!d.share;cap=d.cap||'bal';pipSet(!!d.pip);localStorage.fm_sc=code;$('cn').textContent=d.cname;$('cs').textContent="You're in class.";$('er').textContent='';show('s3');eyes(d.eyes);fbar();shUi();hb()}
  else if(d.t=='no'){want=false;busy=false;joined=false;localStorage.removeItem('fm_sc');stopShare();home();$('er').textContent=d.why=='removed'?'You were removed from the class.':'Could not join that class.'}
  else if(d.t=='focus'){focusOn=d.on;fbar();hb()}
  else if(d.t=='eyes')eyes(d.on)
  else if(d.t=='share'){needSh=!!d.on;if(!needSh&&stream)stopShare();shUi()}
  else if(d.t=='policy'){cap=d.cap||'bal';outs.forEach((_,v)=>applyQ(v))}
  else if(d.t=='watch'||d.t=='q'||d.t=='unwatch')view(tc.peer,d)
- else if(d.t=='msg'){$('mf').textContent='Message from '+(d.from||'your teacher');$('mt').textContent=d.text;$('mo').classList.remove('hide');fit($('mt'))}}
+ else if(d.t=='pip')pipSet(!!d.on)
+ else if(d.t=='pause'){$('apt').textContent=d.why=='admin'?'The admin has closed the admin control panel, so the system has been paused. It will resume automatically when the admin returns.':'Your class has been paused by the admin.';$('ap').classList.remove('hide')}
+ else if(d.t=='resume')$('ap').classList.add('hide')
+ else if(d.t=='msg'){pm={from:d.from||'your teacher',text:d.text};pipR();$('mf').textContent='Message from '+(d.from||'your teacher');$('mt').textContent=d.text;$('mo').classList.remove('hide');fit($('mt'))}}
 // ---- screen sharing (entire screen only)
 async function startShare(){$('she').textContent='';
  try{const st=await navigator.mediaDevices.getDisplayMedia({video:{displaySurface:'monitor',frameRate:{ideal:20,max:30},width:{max:1920},height:{max:1080}},audio:false,selfBrowserSurface:'exclude',surfaceSwitching:'exclude',monitorTypeSurfaces:'include'});
@@ -54,25 +58,37 @@ async function startShare(){$('she').textContent='';
 function stopShare(){const s=stream;stream=null;if(s)s.getTracks().forEach(k=>{try{k.stop()}catch(e){}});outs.forEach(o=>{try{o.call.close()}catch(e){}});outs.clear();shUi();hb()}
 function shUi(){$('sh').classList.toggle('hide',!(joined&&needSh&&!stream&&!blocked));const e=$('ss');e.classList.toggle('hide',!stream);e.innerHTML=stream?'<span class="pill pg">🟢 Sharing your entire screen</span><br><br>':''}
 // ---- viewers (teacher / admin) pull the stream; quality is set per viewer
-function view(v,d){if(d.t=='watch'){wants.set(v,d.q||'low');callV(v)}else if(d.t=='q'){wants.set(v,d.q||'low');applyQ(v)}else if(d.t=='unwatch')drop(v)}
+function view(v,d){if(d.t=='watch'||d.t=='q'){const q=d.q||'low';wants.set(v,q);if(q!='off')callV(v);else applyQ(v)}else if(d.t=='unwatch')drop(v)}
 function drop(v){wants.delete(v);const o=outs.get(v);if(o){try{o.call.close()}catch(e){}outs.delete(v)}}
-function callV(v){if(!stream)return;const o=outs.get(v);if(o&&(o.call.open||Date.now()-o.t<6000))return applyQ(v);if(o){try{o.call.close()}catch(e){}}
- const call=peer.call(v,stream);outs.set(v,{call,t:Date.now()});call.on('close',()=>{const x=outs.get(v);if(x&&x.call===call)outs.delete(v)});call.on('error',()=>{});applyQ(v)}
+function ok(o){const pc=o.call.peerConnection;return o.call.open||(pc&&/connected|completed/.test(pc.iceConnectionState))}
+function callV(v){if(!stream)return;const o=outs.get(v);if(o){if(ok(o))return applyQ(v);if(Date.now()-o.t<5000)return;try{o.call.close()}catch(e){}}
+ const call=peer.call(v,stream),n={call,t:Date.now()};outs.set(v,n);call.on('close',()=>{if(outs.get(v)===n){outs.delete(v);if(wants.has(v)&&stream)setTimeout(()=>callV(v),1500)}});call.on('error',()=>{});applyQ(v)}
+setInterval(()=>{if(stream)wants.forEach((q,v)=>{if(q!='off')callV(v)})},3000);
 async function applyQ(v,n=0){const o=outs.get(v);if(!o||!stream)return;const pc=o.call.peerConnection,sd=pc&&pc.getSenders().find(s=>s.track&&s.track.kind=='video');
  if(!sd){if(n<12)setTimeout(()=>applyQ(v,n+1),500);return}
  const q=wants.get(v)||'low',C=CAP[cap]||CAP.bal,p=sd.getParameters();if(!p.encodings||!p.encodings.length)p.encodings=[{}];const e=p.encodings[0],w=stream.getVideoTracks()[0].getSettings().width||1920;
  e.active=q!='off';
  if(q=='high'){e.scaleResolutionDownBy=Math.max(1,w/1920);e.maxBitrate=C.hi;e.maxFramerate=C.hf}else{e.scaleResolutionDownBy=Math.max(1,w/560);e.maxBitrate=C.lo;e.maxFramerate=C.lf}
  p.degradationPreference='maintain-resolution';try{await sd.setParameters(p)}catch(x){}}
-const fbar=()=>$('fb').classList.toggle('hide',!focusOn),eyes=on=>$('ey').classList.toggle('hide',!on);
-function fit(e){let s=170;e.style.fontSize=s+'px';while((e.scrollHeight>e.clientHeight||e.scrollWidth>e.clientWidth)&&s>14){s-=4;e.style.fontSize=s+'px'}}
+const fbar=()=>$('fb').classList.toggle('hide',!focusOn),eyes=on=>{eyOn=!!on;$('ey').classList.toggle('hide',!on);pipR()};
+function fit(e,s=170){e.style.fontSize=s+'px';while((e.scrollHeight>e.clientHeight||e.scrollWidth>e.clientWidth)&&s>14){s-=4;e.style.fontSize=s+'px'}}
 addEventListener('resize',()=>!$('mo').classList.contains('hide')&&fit($('mt')));
-function leave(keep){want=false;joined=false;busy=false;stopShare();wants.clear();try{tc&&tc.close()}catch(e){}tc=null;if(!keep)localStorage.removeItem('fm_sc');eyes(0);if(!blocked)home()}
+function leave(keep){pipSet(false);want=false;joined=false;busy=false;stopShare();wants.clear();try{tc&&tc.close()}catch(e){}tc=null;if(!keep)localStorage.removeItem('fm_sc');eyes(0);if(!blocked)home()}
 function forget(){localStorage.clear();location.reload()}
 function hb(){if(!(tc&&tc.open&&joined))return;tc.send({t:'hb',st:focusOn?(away?'away':'ok'):'idle',sh:!!stream})}
 const chk=()=>{away=document.hidden||!document.hasFocus();hb()};
 document.addEventListener('visibilitychange',chk);addEventListener('blur',chk);addEventListener('focus',chk);
 const w=new Worker(URL.createObjectURL(new Blob(['setInterval(()=>postMessage(1),2000)'])));
 w.onmessage=()=>{const n=Date.now();if(n-last>10000&&tc&&tc.open&&joined)tc.send({t:'woke'});last=n;away=document.hidden||!document.hasFocus();hb()};
+let pipOn=false,pw=null,pm=null,eyOn=false;
+function pipSet(on){pipOn=on;if(!on&&pw){try{pw.close()}catch(e){}pw=null}pb()}
+function pb(){$('pb').classList.toggle('hide',!(pipOn&&!pw&&window.documentPictureInPicture))}
+async function openPip(){if(!pipOn||pw||!window.documentPictureInPicture)return;try{const w2=await documentPictureInPicture.requestWindow({width:380,height:200});pw=w2;const d=w2.document;
+ d.head.innerHTML='<style>html,body{margin:0;height:100%}body{display:flex;font-family:system-ui,sans-serif;background:radial-gradient(circle at 30% 20%,#4f46e5,#1e1b4b);color:#fff;text-align:center}#a{flex:1;display:flex;flex-direction:column;padding:3vmin;min-width:0}#f{opacity:.8;font-size:max(11px,3.2vmin)}#t{flex:1;overflow:hidden;display:flex;align-items:center;justify-content:center;font-weight:800;word-break:break-word;line-height:1.1}button{border:0;border-radius:2vmin;padding:1.2vmin 3vmin;font-weight:700;font-size:max(12px,3.6vmin);background:#22c55e;color:#fff;cursor:pointer}</style>';
+ d.body.innerHTML='<div id=a><div id=f></div><div id=t></div><button id=b>OK</button></div>';d.getElementById('b').onclick=()=>{pm=null;pipR()};
+ new w2.ResizeObserver(()=>pipR()).observe(d.body);w2.addEventListener('pagehide',()=>{if(pw===w2)pw=null;pb()});pipR();pb()}catch(e){pw=null}}
+function pipR(){if(!pw)return;const d=pw.document,f=d.getElementById('f'),t=d.getElementById('t'),b=d.getElementById('b');if(!t)return;const idle=!eyOn&&!pm;
+ f.textContent=eyOn||!pm?'':'Message from '+pm.from;t.textContent=eyOn?'👀 Eyes up':pm?pm.text:'Class Connect';t.style.opacity=idle?.5:1;b.style.display=!eyOn&&pm?'':'none';fit(t,idle?40:300)}
+document.addEventListener('click',()=>{if(pipOn&&!pw)openPip()});
 chkBlock();if(!blocked){if(name){home();if(code){want=true;setTimeout(()=>go(code),1500)}}else show('s1')}
 </script></body></html>

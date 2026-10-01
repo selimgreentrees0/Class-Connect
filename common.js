@@ -6,7 +6,7 @@ const sw=(l,on,fn,d)=>`<label class=sw style="margin:6px 18px 6px 0"><input type
 const MOB=/Android|iPhone|iPod|iPad|Mobile|Windows Phone/i.test(navigator.userAgent)||(/Macintosh/.test(navigator.userAgent)&&navigator.maxTouchPoints>1);
 if(MOB){window.NOGO=1;document.body.innerHTML='<div class=ov><div class=box><h2>💻 Computers only</h2><p class=mu>This page works on laptops and desktop computers, not phones or tablets.</p></div></div>'}
 // No server of our own: PeerJS's free public broker is used only for the first handshake. Video/data then flow directly device-to-device; iceServers is empty so media never leaves the LAN.
-const mkPeer=id=>new Peer(id,{config:{iceServers:[]}});
+const mkPeer=id=>{const o={config:{iceServers:[]}},p=id?new Peer(id,o):new Peer(o);setInterval(()=>{if(!p.destroyed&&p.disconnected)try{p.reconnect()}catch(e){}},2500);p.on('error',e=>{if(/network|server-error|socket/.test(e.type))setTimeout(()=>{try{p.reconnect()}catch(x){}},2000)});return p};
 const sha=async s=>[...new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s)))].map(b=>b.toString(16).padStart(2,'0')).join('');
 function toast(m){let w=$('tw');if(!w){w=document.createElement('div');w.id='tw';document.body.appendChild(w)}const d=document.createElement('div');d.className='toast';d.textContent=m;w.appendChild(d);setTimeout(()=>d.remove(),4500)}
 // Stream quality profiles (bits/s, frames/s). "lo" = grid preview, "hi" = expanded view.
