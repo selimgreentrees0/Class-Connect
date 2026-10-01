@@ -1,50 +1,57 @@
 <!doctype html><html><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><title>Focus Admin</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.4/peerjs.min.js"></script>
-<style>*{box-sizing:border-box}body{font:15px system-ui;margin:0;background:#f3f5f9;color:#1b2430}header{background:#1f3a8a;color:#fff;padding:12px 18px;font-weight:600}main{padding:16px;max-width:1000px;margin:auto}.c{background:#fff;border-radius:10px;padding:14px;margin-bottom:12px;box-shadow:0 1px 3px #0002}button{background:#2748c9;color:#fff;border:0;border-radius:6px;padding:7px 11px;cursor:pointer;margin:2px}button.g{background:#6b7280}button.r{background:#c0392b}input,textarea{padding:8px;border:1px solid #bbb;border-radius:6px;font:inherit}table{width:100%;border-collapse:collapse}td,th{padding:6px;border-bottom:1px solid #e5e7eb;text-align:left}.ok{color:#15803d}.bad{color:#b91c1c;font-weight:700}.hide{display:none}</style></head><body>
-<header>Focus Admin Console</header><main>
-<div class=c><button onclick="lan()">Allow local network</button> <span id=lanst></span><br>Admin status: <b id=ast>starting…</b><br>
-<label><input type=checkbox id=bat onchange="S.battery=this.checked;save();pushAll()"> Let teachers see student battery</label>
-<br><small>Keep this page open — teachers can only create, view and manage classes while you are online.</small></div>
-<div class=c><b>Teacher codes</b><br><input id=tn placeholder="Teacher name"><button onclick=addT()>Create 6-digit code</button><table id=tt></table></div>
-<div class=c><b>All active classes</b> (shown even if auto-find is off) <button class=g onclick=render()>Scan</button><table id=ct></table></div>
-<div class="c hide" id=pv><b id=pvt></b> — preview mode (the teacher cannot see you)<table id=pr></table>
+<style>*{box-sizing:border-box}body{margin:0;font:15px/1.4 system-ui,Segoe UI,sans-serif;background:#eef1f8;color:#17213a}header{background:linear-gradient(135deg,#1e3a8a,#2f5bea);color:#fff;padding:14px 20px;font-size:18px;font-weight:700;display:flex;justify-content:space-between;align-items:center}main{padding:18px;max-width:1100px;margin:auto}.c{background:#fff;border-radius:14px;padding:16px;margin-bottom:14px;box-shadow:0 2px 8px #1e3a8a14}h3{margin:0 0 10px}button{background:#2f5bea;color:#fff;border:0;border-radius:8px;padding:8px 14px;cursor:pointer;font:inherit;font-weight:600;margin:2px}button:hover{filter:brightness(1.1)}button.g{background:#6b7280}button.r{background:#dc2626}button.x{background:#16a34a}input,textarea{padding:9px 11px;border:1px solid #cbd5e1;border-radius:8px;font:inherit}table{width:100%;border-collapse:collapse}td,th{padding:8px;border-bottom:1px solid #e5e7eb;text-align:left}th{color:#64748b;font-size:13px}.pill{display:inline-block;padding:2px 10px;border-radius:99px;font-size:13px;font-weight:600}.pg{background:#dcfce7;color:#166534}.pr{background:#fee2e2;color:#991b1b}.pa{background:#fef3c7;color:#92400e}.pn{background:#e5e7eb;color:#374151}.hide{display:none!important}.ov{position:fixed;inset:0;background:linear-gradient(135deg,#1e3a8a,#2f5bea);display:flex;align-items:center;justify-content:center;z-index:9;padding:20px}.box{background:#fff;border-radius:16px;padding:28px;max-width:420px;width:100%;text-align:center}.bad{color:#b91c1c}</style></head><body>
+<div class=ov id=lock><div class=box><h2>🔒 Admin Console</h2>
+<div id=l1><input id=pw type=password placeholder="Password" onkeydown="event.key=='Enter'&&unlock()"><br><br><button onclick=unlock()>Unlock</button><p id=pe class=bad></p></div>
+<div id=l2 class=hide><p>Allow this browser to use your school network so teachers and students can connect.</p><button onclick=runLan()>Allow local network</button><p id=ls></p><button id=lc class="x hide" onclick=boot()>Continue</button></div></div></div>
+<header><span>🛡️ Focus Admin Console</span><span id=ast class="pill pn">starting…</span></header><main>
+<div class=c><label><input type=checkbox id=bat onchange="S.battery=this.checked;save();pushAll()"> Let teachers see student battery</label><br><small>Keep this page open. Teachers can only create, view and manage classes while you are online.</small></div>
+<div class=c><h3>Teacher codes</h3><input id=tn placeholder="Teacher name"><button onclick=addT()>Create 6-digit code</button><table id=tt></table></div>
+<div class=c><h3>All active classes <button class=g onclick=render()>Scan</button></h3><small>Shows every open class, even with auto-find off.</small><table id=ct></table></div>
+<div class="c hide" id=pv><h3 id=pvt></h3><small>Preview mode: the teacher cannot see you.</small><table id=pr></table><br>
 <textarea id=pm rows=2 style="width:100%" placeholder="Message to students"></textarea><button onclick="pmsg(0)">Send to all</button><button onclick="pmsg(1)">Send to ticked</button><button class=g onclick="sel=null;$('pv').classList.add('hide')">Close preview</button></div>
-<div class=c><b>Hidden students</b> (their status is not shown to any teacher)<br><input id=hn placeholder="Student name"><button onclick=addH()>Hide</button><div id=hl></div></div>
+<div class=c><h3>Hidden students</h3><small>Their status is not shown to any teacher.</small><br><input id=hn placeholder="Student name"><button onclick=addH()>Hide</button><div id=hl></div></div>
 </main>
 <script>
-const PX='awtyfm1',$=i=>document.getElementById(i),esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-let S=JSON.parse(localStorage.fm_admin||'{"codes":[],"hidden":[],"battery":true}');
-const save=()=>localStorage.fm_admin=JSON.stringify(S);
-const T={},ticks=new Set();let sel=null;
-const rec=c=>S.codes.find(x=>x.code==c)||{};
-function lan(){try{const p=new RTCPeerConnection();p.createDataChannel('x');p.createOffer().then(o=>p.setLocalDescription(o));setTimeout(()=>{p.close();$('lanst').textContent='✔ Allowed (accept the browser prompt if it appears)'},1200)}catch(e){$('lanst').textContent='Please allow network access in your browser'}}
-const peer=new Peer(PX+'-admin');
-peer.on('open',()=>$('ast').innerHTML='<span class=ok>Online</span>');
-peer.on('error',e=>$('ast').innerHTML='<span class=bad>'+(e.type=='unavailable-id'?'Another admin console is already online':'Error: '+e.type)+'</span>');
-peer.on('connection',c=>{c.on('data',d=>h(c,d));c.on('close',()=>{for(const k in T)if(T[k].conn===c)delete T[k];render()})});
+const PX='awtyfm1',PW='c2t5Ymx1ZQ==',$=i=>document.getElementById(i),esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const set=(e,h)=>{if(e._h!==h){e._h=h;e.innerHTML=h}};
+function lanCheck(cb){let d=0;try{const a=new AbortController();setTimeout(()=>a.abort(),1500);fetch('http://192.168.0.1/',{mode:'no-cors',signal:a.signal,targetAddressSpace:'local'}).catch(()=>{})}catch(e){}
+ try{const p=new RTCPeerConnection();let n=0;p.createDataChannel('x');p.onicecandidate=e=>{if(e.candidate&&/typ host/.test(e.candidate.candidate))n++};p.createOffer().then(o=>p.setLocalDescription(o));setTimeout(()=>{p.close();if(!d){d=1;cb(n)}},2500)}catch(e){cb(0)}}
+function runLan(){$('ls').textContent='Checking… (accept the browser prompt if it appears)';lanCheck(n=>{$('ls').innerHTML=n?'✅ Local network ready':'⚠️ Could not confirm. Click the lock icon in the address bar → Site settings → Local network → Allow, then press the button again.';$('lc').classList.remove('hide')})}
+function unlock(){if($('pw').value===atob(PW)){$('l1').classList.add('hide');$('l2').classList.remove('hide');runLan()}else $('pe').textContent='Wrong password'}
+let S=JSON.parse(localStorage.fm_admin||'{"codes":[],"hidden":[],"battery":true}'),T={},ticks=new Set(),sel=null,peer,rr=[];
+const save=()=>localStorage.fm_admin=JSON.stringify(S),rec=c=>S.codes.find(x=>x.code==c)||{};
+function boot(){$('lock').classList.add('hide');mk();render();setInterval(render,3000)}
+function mk(){peer=new Peer(PX+'-admin');
+ peer.on('open',()=>{$('ast').className='pill pg';$('ast').textContent='Online'});
+ peer.on('disconnected',()=>{try{peer.reconnect()}catch(e){}});
+ peer.on('error',e=>{if(e.type=='unavailable-id'){$('ast').className='pill pa';$('ast').textContent='Waiting for old session to expire…';try{peer.destroy()}catch(x){}setTimeout(mk,4000)}else if(e.type!='peer-unavailable'){$('ast').className='pill pr';$('ast').textContent='Error: '+e.type}});
+ peer.on('connection',c=>{c.on('data',d=>h(c,d));c.on('close',()=>{for(const k in T)if(T[k].conn===c)delete T[k];render()})})}
 const of=c=>Object.keys(T).find(k=>T[k].conn===c);
 const all=()=>Object.entries(T).flatMap(([k,t])=>t.classes.map(c=>({...c,tc:k,tn:rec(k).name,pid:t.pid,paused:rec(k).paused})));
 function h(c,d){
  if(d.t=='auth'){const r=rec(d.code);if(!r.code)return c.send({t:'authr',ok:0,why:'Code not recognised'});if(r.banned)return c.send({t:'authr',ok:0,why:'This account is banned'});
-  T[r.code]={conn:c,pid:d.pid,classes:[],rosters:{}};c.send({t:'authr',ok:1,name:r.name});pol(r.code);render()}
+  const k=of(c);if(k&&k!=r.code)delete T[k];T[r.code]={conn:c,pid:d.pid,classes:[],rosters:{}};c.send({t:'authr',ok:1,name:r.name});pol(r.code);render()}
  else if(d.t=='classes'){const k=of(c);if(k){T[k].classes=d.list;render()}}
  else if(d.t=='roster'){const k=of(c);if(k){T[k].rosters[d.cid]=d.students;if(sel&&sel.cid==d.cid)prev()}}
  else if(d.t=='list')c.send({t:'list',list:all().filter(x=>x.auto&&x.active&&!x.paused).map(x=>({name:x.name,code:x.cc}))});
  else if(d.t=='lookup'){const x=all().find(x=>x.cc==d.code&&x.active&&!x.paused);c.send({t:'lookup',pid:x&&x.pid})}}
 function pol(k){const t=T[k];t&&t.conn.open&&t.conn.send({t:'policy',paused:!!rec(k).paused,hidden:S.hidden,battery:S.battery})}
 const pushAll=()=>Object.keys(T).forEach(pol);
+function kick(k){const t=T[k];if(t){try{t.conn.send({t:'kick'})}catch(e){}setTimeout(()=>{try{t.conn.close()}catch(e){}},400);delete T[k]}}
 function addT(){const n=$('tn').value.trim();if(!n)return;let c;do c=String(Math.floor(100000+Math.random()*900000));while(rec(c).code);S.codes.push({code:c,name:n});save();$('tn').value='';render()}
-function ban(c){const r=rec(c);r.banned=!r.banned;save();if(r.banned&&T[c]){T[c].conn.send({t:'kick'});delete T[c]}render()}
+function ban(c){const r=rec(c);r.banned=!r.banned;save();if(r.banned)kick(c);render()}
 function pause(c){const r=rec(c);r.paused=!r.paused;save();pol(c);render()}
-function del(c){if(!confirm('Delete this teacher code?'))return;S.codes=S.codes.filter(x=>x.code!=c);save();if(T[c]){T[c].conn.send({t:'kick'});delete T[c]}render()}
+function del(c){if(!confirm('Delete this teacher code?'))return;S.codes=S.codes.filter(x=>x.code!=c);save();kick(c);render()}
 function render(){$('bat').checked=S.battery;
- $('tt').innerHTML='<tr><th>Teacher<th>Code<th>Status<th></tr>'+S.codes.map(r=>`<tr><td>${esc(r.name)}<td><b>${r.code}</b><td>${r.banned?'<span class=bad>Banned</span>':r.paused?'Paused':T[r.code]?'<span class=ok>Online</span>':'Offline'}<td><button class=${r.banned?'':'r'} onclick="ban('${r.code}')">${r.banned?'Unban':'Ban'}</button><button class=g onclick="pause('${r.code}')">${r.paused?'Resume':'Pause'}</button><button class=g onclick="del('${r.code}')">Delete</button>`).join('');
- $('ct').innerHTML='<tr><th>Class<th>Teacher<th>Code<th>Auto-find<th>Students<th></tr>'+all().filter(x=>x.active).map(x=>`<tr><td>${esc(x.name)}<td>${esc(x.tn)}<td>${x.cc}<td>${x.auto?'On':'Off'}<td>${(T[x.tc].rosters[x.id]||[]).length}<td><button onclick="view('${x.tc}','${x.id}','${esc(x.name)}')">Preview</button>`).join('');
- $('hl').innerHTML=S.hidden.map((n,i)=>`<span style="margin-right:8px">${esc(n)} <button class=g onclick="S.hidden.splice(${i},1);save();pushAll();render()">✕</button></span>`).join('')}
-function view(tc,cid,n){sel={tc,cid};ticks.clear();$('pvt').textContent='Class: '+n;$('pv').classList.remove('hide');prev()}
-function prev(){if(!sel||!T[sel.tc])return;const r=T[sel.tc].rosters[sel.cid]||[];
- $('pr').innerHTML='<tr><th><th>Student<th>Status<th>Battery<th>Left page<th></tr>'+r.map(s=>`<tr><td><input type=checkbox ${ticks.has(s.id)?'checked':''} onchange="this.checked?ticks.add('${s.id}'):ticks.delete('${s.id}')"><td>${esc(s.name)}<td>${esc(s.st)}<td>${s.bat==null?'':s.bat+'%'+(s.chg?' ⚡':'')}<td>${s.left||0}<td><button class=g onclick="S.hidden.push('${esc(s.name)}');save();pushAll();render()">Hide status</button>`).join('')}
+ set($('tt'),'<tr><th>Teacher<th>Code<th>Status<th></tr>'+S.codes.map(r=>`<tr><td>${esc(r.name)}<td><b>${r.code}</b><td>${r.banned?'<span class="pill pr">Banned</span>':r.paused?'<span class="pill pa">Paused</span>':T[r.code]?'<span class="pill pg">Online</span>':'<span class="pill pn">Offline</span>'}<td><button class="${r.banned?'x':'r'}" onclick="ban('${r.code}')">${r.banned?'Unban':'Ban'}</button><button class=g onclick="pause('${r.code}')">${r.paused?'Resume':'Pause'}</button><button class=g onclick="del('${r.code}')">Delete</button>`).join(''));
+ const A=all().filter(x=>x.active);
+ set($('ct'),'<tr><th>Class<th>Teacher<th>Code<th>Auto-find<th>Students<th></tr>'+A.map((x,i)=>`<tr><td>${esc(x.name)}<td>${esc(x.tn)}<td><b>${x.cc}</b><td>${x.auto?'On':'Off'}<td>${(T[x.tc].rosters[x.id]||[]).length}<td><button onclick="view('${x.tc}','${x.id}')">Preview</button>`).join(''));
+ set($('hl'),S.hidden.map((n,i)=>`<span class="pill pn" style="margin:4px">${esc(n)} <a href="#" onclick="S.hidden.splice(${i},1);save();pushAll();render();return false">✕</a></span>`).join(''))}
+function view(tc,cid){sel={tc,cid};ticks.clear();const x=all().find(y=>y.id==cid);$('pvt').textContent='Preview: '+(x?x.name:'');$('pv').classList.remove('hide');prev()}
+function prev(){if(!sel||!T[sel.tc])return;rr=T[sel.tc].rosters[sel.cid]||[];
+ set($('pr'),'<tr><th><th>Student<th>Status<th>Battery<th>Left page<th></tr>'+rr.map((s,i)=>`<tr><td><input type=checkbox ${ticks.has(s.id)?'checked':''} onchange="this.checked?ticks.add('${esc(s.id)}'):ticks.delete('${esc(s.id)}')"><td>${esc(s.name)}<td>${esc(s.st)}<td>${s.bat==null?'':s.bat+'%'+(s.chg?' ⚡':'')}<td>${s.left||0}<td><button class=g onclick="hideN(${i})">Hide status</button>`).join(''))}
+function hideN(i){S.hidden.push(rr[i].name);save();pushAll();render()}
 function pmsg(x){const t=$('pm').value.trim();if(!t||!sel||!T[sel.tc])return;T[sel.tc].conn.send({t:'amsg',cid:sel.cid,ids:x?[...ticks]:null,text:t});$('pm').value=''}
 function addH(){const n=$('hn').value.trim();if(n){S.hidden.push(n);save();pushAll();$('hn').value='';render()}}
-render();setInterval(()=>{render();prev()},5000);
 </script></body></html>

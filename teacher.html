@@ -1,66 +1,76 @@
-<!doctype html><html><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><title>Teacher Focus Dashboard</title>
+<!doctype html><html><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><title>Teacher Dashboard</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.4/peerjs.min.js"></script>
-<style>*{box-sizing:border-box}body{font:15px system-ui;margin:0;background:#f3f5f9;color:#1b2430}header{background:#1f3a8a;color:#fff;padding:12px 18px;font-weight:600}main{padding:16px;max-width:1000px;margin:auto}.c{background:#fff;border-radius:10px;padding:14px;margin-bottom:12px;box-shadow:0 1px 3px #0002}button{background:#2748c9;color:#fff;border:0;border-radius:6px;padding:7px 11px;cursor:pointer;margin:2px}button.g{background:#6b7280}button.r{background:#c0392b}input,textarea,select{padding:8px;border:1px solid #bbb;border-radius:6px;font:inherit}table{width:100%;border-collapse:collapse}td,th{padding:6px;border-bottom:1px solid #e5e7eb;text-align:left}.ok{color:#15803d}.bad{color:#b91c1c;font-weight:700}.warn{color:#b45309;font-weight:700}.ov{position:fixed;inset:0;background:#111e;color:#fff;display:flex;align-items:center;justify-content:center;text-align:center;padding:24px;font-size:22px;z-index:9}.hide{display:none!important}.code{font-size:34px;font-weight:700;letter-spacing:4px}</style></head><body>
-<header>Teacher Focus Dashboard</header>
-<div class=ov id=ov><div><div id=ovt>Enter the 6-digit code from your admin</div><p id=err class=bad></p>
-<div id=lg><button onclick="lan()">1. Allow local network</button><br><br><input id=cd maxlength=6 placeholder="000000" style="font-size:24px;width:160px;text-align:center"><br><br><button onclick="login()">2. Sign in</button></div></div></div>
+<style>*{box-sizing:border-box}body{margin:0;font:15px/1.4 system-ui,Segoe UI,sans-serif;background:#eef1f8;color:#17213a}header{background:linear-gradient(135deg,#1e3a8a,#2f5bea);color:#fff;padding:14px 20px;font-size:18px;font-weight:700;display:flex;justify-content:space-between}main{padding:18px;max-width:1100px;margin:auto}.c{background:#fff;border-radius:14px;padding:16px;margin-bottom:14px;box-shadow:0 2px 8px #1e3a8a14}h3{margin:0 0 10px}button{background:#2f5bea;color:#fff;border:0;border-radius:8px;padding:8px 14px;cursor:pointer;font:inherit;font-weight:600;margin:2px}button:hover{filter:brightness(1.1)}button.g{background:#6b7280}button.r{background:#dc2626}button.x{background:#16a34a}input,textarea,select{padding:9px 11px;border:1px solid #cbd5e1;border-radius:8px;font:inherit}.pill{display:inline-block;padding:2px 10px;border-radius:99px;font-size:13px;font-weight:600}.pg{background:#dcfce7;color:#166534}.pr{background:#fee2e2;color:#991b1b}.pa{background:#fef3c7;color:#92400e}.pn{background:#e5e7eb;color:#374151}.hide{display:none!important}.ov{position:fixed;inset:0;background:linear-gradient(135deg,#1e3a8a,#2f5bea);display:flex;align-items:center;justify-content:center;z-index:9;padding:20px}.box{background:#fff;border-radius:16px;padding:28px;max-width:420px;width:100%;text-align:center}.bad{color:#b91c1c}.code{font-size:40px;font-weight:800;letter-spacing:6px;color:#1e3a8a}.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px}.st{border:1px solid #e2e8f0;border-left:6px solid #94a3b8;border-radius:10px;padding:10px;background:#fafbff}.sum{display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap}#tw{position:fixed;right:16px;bottom:16px;z-index:20;display:flex;flex-direction:column;gap:6px}.toast{background:#111827;color:#fff;padding:10px 16px;border-radius:10px}</style></head><body>
+<div class=ov id=ov><div class=box><h2>👩‍🏫 Teacher Dashboard</h2>
+<div id=lg><p><b>Step 1.</b> Allow your school network</p><button onclick=runLan()>Allow local network</button><p id=ls></p>
+<div id=l2 class=hide><p><b>Step 2.</b> Enter the 6-digit code from your admin</p><input id=cd maxlength=6 inputmode=numeric placeholder="000000" style="font-size:26px;width:180px;text-align:center" onkeydown="event.key=='Enter'&&login()"><br><br><button class=x onclick=login()>Sign in</button></div></div>
+<p id=ovt></p><p id=err class=bad></p></div></div>
+<header><span>👩‍🏫 Teacher Dashboard</span><span id=who></span></header>
 <main id=mn class=hide>
-<div class=c><select id=cs onchange="pick(this.value)"></select><button onclick=addC()>+ New class</button><button class=r onclick=delC()>Remove class</button><button class=r onclick=wipe()>Delete all saved classes &amp; students</button>
-<div id=cb></div></div>
-<div class=c><table id=rt></table></div>
-<div class=c><b>Send a message</b> (shown large on student screens)<br><textarea id=mt rows=2 style="width:100%" placeholder="Type message"></textarea>
-<button onclick="msg(0)">Send to whole class</button><button onclick="msg(1)">Send to ticked students</button> <small>Tick students in the list to message a group or one student.</small></div>
-</main>
+<div class=c><select id=cs onchange="pick(this.value)"></select><button onclick=addC()>+ New class</button><button class=g onclick=delC()>Remove class</button><button class=g onclick=wipe()>Delete all saved classes &amp; students</button><div id=cb></div></div>
+<div class=c><div class=sum id=sm></div><div class=grid id=rt></div></div>
+<div class=c><h3>Send a message</h3><small>Shown large on student screens. Tick students above to message a group or one student.</small><br>
+<textarea id=mt rows=2 style="width:100%;margin-top:6px" placeholder="Type your message"></textarea><button onclick="msg(0)">Send to whole class</button><button onclick="msg(1)">Send to ticked students</button><button class=g onclick=tickAll()>Tick / untick all</button></div>
+</main><div id=tw></div>
 <script>
-const PX='awtyfm1',$=i=>document.getElementById(i),esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const PX='awtyfm1',$=i=>document.getElementById(i),esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const set=(e,h)=>{if(e._h!==h){e._h=h;e.innerHTML=h}};
+function lanCheck(cb){let d=0;try{const a=new AbortController();setTimeout(()=>a.abort(),1500);fetch('http://192.168.0.1/',{mode:'no-cors',signal:a.signal,targetAddressSpace:'local'}).catch(()=>{})}catch(e){}
+ try{const p=new RTCPeerConnection();let n=0;p.createDataChannel('x');p.onicecandidate=e=>{if(e.candidate&&/typ host/.test(e.candidate.candidate))n++};p.createOffer().then(o=>p.setLocalDescription(o));setTimeout(()=>{p.close();if(!d){d=1;cb(n)}},2500)}catch(e){cb(0)}}
+function runLan(){$('ls').textContent='Checking… (accept the browser prompt if it appears)';lanCheck(n=>{$('ls').innerHTML=n?'✅ Local network ready':'⚠️ Could not confirm. Click the lock icon in the address bar → Site settings → Local network → Allow, then press the button again. You can still continue.';$('l2').classList.remove('hide')})}
 let classes=JSON.parse(localStorage.fm_tc||'[]'),known=JSON.parse(localStorage.fm_ts||'{}'),code='',pid='',ac=null,authed=false,pol={hidden:[]},cur=classes[0]&&classes[0].id,tname='',last=0,err='';
-const STU={},ticks=new Set();
+const STU={},ticks=new Set(),col={pg:'#22c55e',pr:'#ef4444',pa:'#f59e0b',pn:'#94a3b8'};
 const sv=()=>{localStorage.fm_tc=JSON.stringify(classes);localStorage.fm_ts=JSON.stringify(known);sync()};
-function lan(){try{const p=new RTCPeerConnection();p.createDataChannel('x');p.createOffer().then(o=>p.setLocalDescription(o));setTimeout(()=>p.close(),1200)}catch(e){}$('err').textContent=''}
-const peer=new Peer();peer.on('open',i=>pid=i);peer.on('error',()=>{});
-function login(){const v=$('cd').value.trim();if(!/^\d{6}$/.test(v)){err='Enter 6 digits';return ui()}code=v;err='';last=0;ui();tick()}
-function tick(){if(!code||!pid||(ac&&ac.open)||Date.now()-last<4000)return;last=Date.now();try{ac&&ac.close()}catch(e){}
+function toast(m){const d=document.createElement('div');d.className='toast';d.textContent=m;$('tw').appendChild(d);setTimeout(()=>d.remove(),4500)}
+function beep(){try{const a=new AudioContext(),o=a.createOscillator();o.connect(a.destination);o.frequency.value=660;o.start();setTimeout(()=>{o.stop();a.close()},150)}catch(e){}}
+const peer=new Peer();peer.on('open',i=>pid=i);peer.on('disconnected',()=>{try{peer.reconnect()}catch(e){}});peer.on('error',()=>{});
+function login(){const v=$('cd').value.trim();if(!/^\d{6}$/.test(v)){err='Enter 6 digits';return ui()}code=v;err='';ui();if(ac&&ac.open)ac.send({t:'auth',code,pid});else{last=0;tick()}}
+function tick(){if(!code||!pid||(ac&&ac.open)||Date.now()-last<8000)return;last=Date.now();try{ac&&ac.close()}catch(e){}
  ac=peer.connect(PX+'-admin',{reliable:true});ac.on('open',()=>ac.send({t:'auth',code,pid}));ac.on('data',adm);ac.on('close',()=>{authed=false;ui()})}
 setInterval(tick,2500);
 function adm(d){
- if(d.t=='authr'){if(d.ok){authed=true;tname=d.name;sync()}else{authed=false;code='';err=d.why}ui()}
+ if(d.t=='authr'){if(d.ok){authed=true;tname=d.name;err='';sync()}else{authed=false;code='';err=d.why}ui()}
  else if(d.t=='policy'){pol=d;ui();stuAll({t:'policy',battery:pol.battery})}
- else if(d.t=='kick'){authed=false;code='';err='Access removed by admin';ui()}
+ else if(d.t=='kick'){authed=false;code='';err='Access removed by admin';pol={hidden:[]};ui()}
  else if(d.t=='amsg')send(d.cid,d.ids,d.text,'Admin')}
 function ui(){const w=!authed||pol.paused||!code;$('ov').classList.toggle('hide',!w);$('mn').classList.toggle('hide',w);
- $('lg').classList.toggle('hide',!!code);$('err').textContent=err;
- $('ovt').textContent=!code?'Enter the 6-digit code from your admin':!authed?'Waiting for the admin console to come online…':pol.paused?'Viewing and control paused by admin':'';
- if(authed&&!pol.paused)drawBar()}
+ $('lg').classList.toggle('hide',!!code);$('err').textContent=err;$('who').textContent=authed?tname:'';
+ $('ovt').textContent=!code?'':!authed?'⏳ Waiting for the admin console to come online…':pol.paused?'⏸️ Viewing and control paused by admin':'';
+ if(!w)drawBar()}
 function sync(){if(authed&&ac&&ac.open)ac.send({t:'classes',list:classes.map(c=>({id:c.id,name:c.name,cc:c.code,auto:c.auto,active:c.active}))})}
 const cl=()=>classes.find(c=>c.id==cur);
 function addC(){const n=prompt('Class name?');if(!n)return;let c;do c=String(Math.floor(100000+Math.random()*900000));while(classes.some(x=>x.code==c));
- const k={id:'c'+Date.now(),name:n,code:c,active:true,auto:true,focus:false};classes.push(k);cur=k.id;sv();drawBar()}
+ const k={id:'c'+Date.now(),name:n.slice(0,40),code:c,active:true,auto:true,focus:false};classes.push(k);cur=k.id;sv();drawBar()}
 function delC(){if(cl()&&confirm('Remove this class?')){classes=classes.filter(c=>c.id!=cur);delete known[cur];cur=classes[0]&&classes[0].id;sv();drawBar()}}
 function wipe(){if(confirm('Delete all saved classes and students on this computer?')){localStorage.removeItem('fm_tc');localStorage.removeItem('fm_ts');location.reload()}}
 function pick(v){cur=v;ticks.clear();drawBar()}
 function tog(k){const c=cl();c[k]=!c[k];if(k=='focus')stuAll({t:'focus',on:c.focus},c.id);sv();drawBar()}
-function drawBar(){$('cs').innerHTML=classes.map(c=>`<option value=${c.id} ${c.id==cur?'selected':''}>${esc(c.name)}</option>`).join('');const c=cl();
- $('cb').innerHTML=c?`<p>Class code: <span class=code>${c.code}</span></p>
- <button class=${c.active?'':'g'} onclick="tog('active')">Class open: ${c.active?'ON':'OFF'}</button>
- <button class=${c.auto?'':'g'} onclick="tog('auto')">Auto-find for students: ${c.auto?'ON':'OFF'}</button>
- <button class=${c.focus?'r':'g'} onclick="tog('focus')">Focus monitoring: ${c.focus?'ON':'OFF'}</button>`:'<p>Create a class to begin.</p>'}
+function drawBar(){set($('cs'),classes.map(c=>`<option value="${c.id}" ${c.id==cur?'selected':''}>${esc(c.name)}</option>`).join(''));const c=cl();
+ set($('cb'),c?`<p>Class code <span class=code>${c.code}</span></p>
+ <button class="${c.active?'x':'g'}" onclick="tog('active')">Class open: ${c.active?'ON':'OFF'}</button>
+ <button class="${c.auto?'x':'g'}" onclick="tog('auto')">Auto-find: ${c.auto?'ON':'OFF'}</button>
+ <button class="${c.focus?'r':'g'}" onclick="tog('focus')">Focus monitoring: ${c.focus?'ON':'OFF'}</button>`:'<p>Create a class to begin.</p>')}
 peer.on('connection',c=>{let s;c.on('data',d=>{
  if(d.t=='hello'){const k=classes.find(x=>x.code==d.code&&x.active);if(!k||!authed||pol.paused){c.send({t:'no'});setTimeout(()=>c.close(),300);return}
-  const m=STU[k.id]=STU[k.id]||{};s=m[d.sid]=Object.assign(m[d.sid]||{left:0},{name:String(d.name).slice(0,40),c,st:'ok',ts:Date.now()});
+  const m=STU[k.id]=STU[k.id]||{};s=m[d.sid]=Object.assign(m[d.sid]||{left:0},{name:String(d.name).slice(0,40),c,st:'ok',ts:Date.now(),k:k.id});
   (known[k.id]=known[k.id]||{})[d.sid]=s.name;sv();c.send({t:'yes',cname:k.name});c.send({t:'focus',on:!!k.focus});c.send({t:'policy',battery:pol.battery})}
- else if(s&&d.t=='hb'){const w=s.st;s.st=d.st;s.bat=d.bat;s.chg=d.chg;s.ts=Date.now();if(d.st=='away'&&w!='away')s.left++}
+ else if(s&&d.t=='hb'){const w=s.st;s.st=d.st;s.bat=d.bat;s.chg=d.chg;s.ts=Date.now();
+  if(d.st=='away'&&w!='away'){s.left++;if(!hid(s.name)){toast('⚠️ '+s.name+' left the page');beep()}}}
  else if(s&&d.t=='woke')s.note='Woke from sleep '+new Date().toLocaleTimeString()});
  c.on('close',()=>{if(s&&s.c===c)s.c=null})});
 function stuAll(m,cid){for(const id in STU)if(!cid||id==cid)for(const s in STU[id])if(STU[id][s].c&&STU[id][s].c.open)STU[id][s].c.send(m)}
 const hid=n=>(pol.hidden||[]).some(h=>h.toLowerCase()==n.toLowerCase());
-function status(k,s){if(!s||!s.c||!s.c.open)return['Not connected','warn'];if(!k.focus)return['Connected','ok'];
- if(Date.now()-s.ts>10000)return['Laptop asleep / offline','bad'];return s.st=='away'?['Left the page / changed window','bad']:['On page','ok']}
+function status(k,s){if(!s||!s.c||!s.c.open)return['Not connected','pa'];if(!k.focus)return['Connected','pg'];
+ if(Date.now()-s.ts>10000)return['💤 Laptop asleep / offline','pr'];return s.st=='away'?['Left the page / changed window','pr']:['On page','pg']}
 const list=k=>Object.keys(known[k.id]||{}).map(i=>({id:i,name:known[k.id][i],s:(STU[k.id]||{})[i]}));
-function draw(){const k=cl();if(!k||$('mn').classList.contains('hide'))return;
- $('rt').innerHTML='<tr><th><th>Student<th>Status<th>Battery<th>Times left<th>Note</tr>'+list(k).map(x=>{const h=hid(x.name),[t,c]=status(k,x.s);
- return`<tr><td><input type=checkbox ${ticks.has(x.id)?'checked':''} onchange="this.checked?ticks.add('${x.id}'):ticks.delete('${x.id}')"><td>${esc(x.name)}<td class=${h?'':c}>${h?'Hidden by admin':t}<td>${!h&&x.s&&x.s.bat!=null?x.s.bat+'%'+(x.s.chg?' ⚡ charging':''):''}<td>${h||!k.focus||!x.s?'':x.s.left}<td>${h||!x.s||!k.focus?'':esc(x.s.note||'')}`}).join('')}
+function tickAll(){const k=cl();if(!k)return;const L=list(k);if(ticks.size==L.length)ticks.clear();else L.forEach(x=>ticks.add(x.id));draw()}
+function draw(){const k=cl();if(!k||$('mn').classList.contains('hide'))return;const L=list(k);let g=0,r=0,n=0;
+ const cards=L.map(x=>{const h=hid(x.name),[t,c]=status(k,x.s);if(!h){c=='pg'?g++:c=='pr'?r++:n++}else n++;const cc=h?'pn':c;
+ return`<div class=st style="border-left-color:${col[cc]}"><label><input type=checkbox ${ticks.has(x.id)?'checked':''} onchange="this.checked?ticks.add('${x.id}'):ticks.delete('${x.id}')"> <b>${esc(x.name)}</b></label><div style="margin:6px 0"><span class="pill ${cc}">${h?'Hidden by admin':t}</span></div><small>${!h&&x.s&&x.s.bat!=null?'🔋 '+x.s.bat+'%'+(x.s.chg?' ⚡ charging':''):''}${!h&&k.focus&&x.s?' · left page '+x.s.left+'×':''}<br>${!h&&k.focus&&x.s?esc(x.s.note||''):''}</small></div>`}).join('');
+ set($('sm'),`<span class="pill pg">✅ ${g} OK</span><span class="pill pr">⚠️ ${r} need attention</span><span class="pill pn">⚪ ${n} not connected / hidden</span>`);
+ set($('rt'),cards||'<p>No students yet. Share the class code or turn on auto-find.</p>')}
 function send(cid,ids,text,from){for(const i in STU[cid]||{}){const s=STU[cid][i];if(s.c&&s.c.open&&(!ids||ids.includes(i)))s.c.send({t:'msg',text,from})}}
-function msg(x){const t=$('mt').value.trim(),k=cl();if(!t||!k)return;if(x&&!ticks.size)return alert('Tick one or more students first');send(k.id,x?[...ticks]:null,t,tname||'Teacher');$('mt').value=''}
+function msg(x){const t=$('mt').value.trim(),k=cl();if(!t||!k)return;if(x&&!ticks.size)return toast('Tick one or more students first');send(k.id,x?[...ticks]:null,t,tname||'Teacher');$('mt').value='';toast('✅ Message sent')}
 setInterval(draw,1000);
 setInterval(()=>{if(authed&&ac&&ac.open)classes.filter(k=>k.active).forEach(k=>ac.send({t:'roster',cid:k.id,students:list(k).map(x=>({id:x.id,name:x.name,st:status(k,x.s)[0],bat:x.s&&x.s.bat,chg:x.s&&x.s.chg,left:x.s?x.s.left:0}))}))},2000);
 ui();

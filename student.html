@@ -1,0 +1,49 @@
+<!doctype html><html><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><title>Class Connect</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.4/peerjs.min.js"></script>
+<style>*{box-sizing:border-box}body{margin:0;min-height:100vh;font:16px/1.4 system-ui,Segoe UI,sans-serif;background:linear-gradient(135deg,#1e3a8a,#2f5bea);color:#17213a;display:flex;align-items:center;justify-content:center;padding:16px}.c{background:#fff;border-radius:18px;padding:26px;max-width:440px;width:100%;text-align:center;box-shadow:0 10px 30px #0004}h2{margin:0 0 8px}button{background:#2f5bea;color:#fff;border:0;border-radius:10px;padding:11px 16px;cursor:pointer;font:inherit;font-weight:600;margin:4px}button:hover{filter:brightness(1.1)}button.g{background:#6b7280}button.x{background:#16a34a}.big{display:block;width:100%;font-size:18px;padding:14px}input{padding:12px;border:1px solid #cbd5e1;border-radius:10px;font:inherit;width:100%;margin-bottom:8px;text-align:center}.hide{display:none!important}#mo{position:fixed;inset:0;background:#1e3a8a;color:#fff;z-index:9;display:flex;flex-direction:column;padding:20px}#mt{flex:1;overflow:hidden;display:flex;align-items:center;justify-content:center;text-align:center;font-weight:800;word-break:break-word;line-height:1.15}#mf{text-align:center;opacity:.8;margin-bottom:8px}.err{color:#b91c1c}</style></head><body>
+<div class=c id=s0><h2>👋 Welcome</h2><p>Allow your school network so you can join your class.</p><button onclick=runLan()>Allow local network</button><p id=ls></p></div>
+<div class="c hide" id=s1><h2>What is your name?</h2><input id=nm placeholder="Your name" onkeydown="event.key=='Enter'&&start()"><button class=x onclick=start()>Continue</button></div>
+<div class="c hide" id=s2><h2>Hi <span id=hi></span>! 👋</h2><p>Classes on your network:</p><div id=fl>Looking…</div><hr><p>Or type your 6-digit class code:</p><input id=cd maxlength=6 inputmode=numeric placeholder="000000" style="font-size:24px"><button class=x onclick="go($('cd').value.trim())">Join class</button><p id=er class=err></p><button class=g onclick=forget()>Forget my info</button></div>
+<div class="c hide" id=s3><h2 id=cn></h2><p id=cs style="font-size:18px">Connected ✔</p><button class=g onclick=leave()>Leave class</button></div>
+<div id=mo class=hide><div id=mf></div><div id=mt></div><button class=x onclick="$('mo').classList.add('hide')" style="font-size:22px">OK</button></div>
+<script>
+const PX='awtyfm1',$=i=>document.getElementById(i);
+const set=(e,h)=>{if(e._h!==h){e._h=h;e.innerHTML=h}};
+function lanCheck(cb){let d=0;try{const a=new AbortController();setTimeout(()=>a.abort(),1500);fetch('http://192.168.0.1/',{mode:'no-cors',signal:a.signal,targetAddressSpace:'local'}).catch(()=>{})}catch(e){}
+ try{const p=new RTCPeerConnection();let n=0;p.createDataChannel('x');p.onicecandidate=e=>{if(e.candidate&&/typ host/.test(e.candidate.candidate))n++};p.createOffer().then(o=>p.setLocalDescription(o));setTimeout(()=>{p.close();if(!d){d=1;cb(n)}},2500)}catch(e){cb(0)}}
+let name=localStorage.fm_sn||'',sid=localStorage.fm_sid||(localStorage.fm_sid=Math.random().toString(36).slice(2)),focusOn=false,useBat=false,B=null,tc=null,joined=false,want=false,busy=false,code=localStorage.fm_sc||'',away=false,last=Date.now(),ready=false;
+const show=i=>['s0','s1','s2','s3'].forEach(x=>$(x).classList.toggle('hide',x!=i));
+function runLan(){$('ls').textContent='Checking… (accept the browser prompt if it appears)';lanCheck(n=>{$('ls').innerHTML=n?'✅ Local network ready':'⚠️ Could not confirm. Click the lock icon in the address bar → Site settings → Local network → Allow, then press the button again.';setTimeout(()=>{localStorage.fm_lan=1;next()},n?600:3500)})}
+function next(){name?home():show('s1')}
+const peer=new Peer();peer.on('open',()=>ready=true);peer.on('disconnected',()=>{try{peer.reconnect()}catch(e){}});peer.on('error',()=>{});
+navigator.getBattery&&navigator.getBattery().then(b=>B=b).catch(()=>{});
+function start(){const v=$('nm').value.trim();if(!v)return;name=v.slice(0,40);localStorage.fm_sn=name;home()}
+function home(){$('hi').textContent=name;show('s2');scan()}
+function ask(m,cb){if(!ready)return cb(null);const c=peer.connect(PX+'-admin',{reliable:true});let d=0;const f=r=>{if(!d){d=1;cb(r);try{c.close()}catch(e){}}};c.on('open',()=>c.send(m));c.on('data',f);c.on('error',()=>f(null));setTimeout(()=>f(null),4000)}
+function scan(){if(joined||want||!name||$('s2').classList.contains('hide'))return;ask({t:'list'},r=>{
+ set($('fl'),!r?'Looking for your teacher’s network…':!r.list.length?'No open classes yet.':r.list.map(c=>`<button class="big" onclick="go('${c.code}')">Join ${c.name.replace(/[<>&"']/g,'')}</button>`).join(''))})}
+setInterval(scan,4000);
+function go(c){if(!/^\d{6}$/.test(c))return $('er').textContent='Enter 6 digits';if(busy)return;busy=true;want=true;code=c;$('er').textContent='Connecting…';
+ ask({t:'lookup',code:c},r=>{if(!r||!r.pid){busy=false;want=false;return $('er').textContent='Class not found. Is your teacher ready?'}
+  tc=peer.connect(r.pid,{reliable:true});const mine=tc;
+  tc.on('open',()=>tc.send({t:'hello',name,sid,code:c}));tc.on('data',onT);
+  setTimeout(()=>{if(!joined&&tc===mine){busy=false;try{mine.close()}catch(e){}if(want){$('er').textContent='Teacher not reachable, retrying…';setTimeout(()=>want&&go(code),2000)}}},7000);
+  tc.on('close',()=>{if(tc!==mine)return;const was=joined;joined=false;busy=false;if(want&&was){$('cs').textContent='Disconnected — reconnecting…';setTimeout(()=>want&&go(code),3000)}})})}
+function onT(d){
+ if(d.t=='yes'){joined=true;busy=false;localStorage.fm_sc=code;$('cn').textContent=d.cname;$('cs').textContent='Connected ✔';$('er').textContent='';show('s3')}
+ else if(d.t=='no'){want=false;busy=false;localStorage.removeItem('fm_sc');home();$('er').textContent='Could not join that class.'}
+ else if(d.t=='focus')focusOn=d.on;
+ else if(d.t=='policy')useBat=!!d.battery;
+ else if(d.t=='msg'){$('mf').textContent='Message from '+(d.from||'your teacher');$('mt').textContent=d.text;$('mo').classList.remove('hide');fit($('mt'))}}
+function fit(e){let s=160;e.style.fontSize=s+'px';while((e.scrollHeight>e.clientHeight||e.scrollWidth>e.clientWidth)&&s>14){s-=4;e.style.fontSize=s+'px'}}
+addEventListener('resize',()=>!$('mo').classList.contains('hide')&&fit($('mt')));
+function leave(){want=false;joined=false;busy=false;try{tc.close()}catch(e){}localStorage.removeItem('fm_sc');home()}
+function forget(){localStorage.clear();location.reload()}
+function hb(){if(tc&&tc.open&&joined)tc.send({t:'hb',st:focusOn?(away?'away':'ok'):'idle',bat:useBat&&B?Math.round(B.level*100):undefined,chg:useBat&&B?B.charging:undefined})}
+const chk=()=>{away=document.hidden||!document.hasFocus();hb()};
+document.addEventListener('visibilitychange',chk);addEventListener('blur',chk);addEventListener('focus',chk);
+const w=new Worker(URL.createObjectURL(new Blob(['setInterval(()=>postMessage(1),2000)'])));
+w.onmessage=()=>{const n=Date.now();if(n-last>10000&&tc&&tc.open&&joined)tc.send({t:'woke'});last=n;away=document.hidden||!document.hasFocus();hb()};
+show('s0');
+if(localStorage.fm_lan&&name){home();if(code){want=true;setTimeout(()=>go(code),1500)}}
+</script></body></html>
