@@ -13,13 +13,14 @@
 <div id=mo class="full hide"><div id=mf></div><div id=mt></div><button class=x onclick="$('mo').classList.add('hide')" style="font-size:22px;margin-top:14px">OK</button></div>
 <div id=ap class="full hide" style="z-index:100;background:#111827"><div style="font-size:80px">⏸️</div><h1>System paused</h1><p id=apt style="opacity:.8;font-size:18px;max-width:520px"></p></div>
 <div id=blk class="full hide"><div style="font-size:80px">🔒</div><h1>Teacher view is open</h1><p style="opacity:.75;font-size:18px;max-width:480px">This device is signed in as an admin and the teacher view is open, so the student page is locked. Close the teacher view to continue.</p></div>
+<div id=fv class="full hide" style="background:#7c2d12;z-index:62"><div style="font-size:90px">📷</div><h1 style="font-size:42px;margin:10px 0">Be visible to the camera</h1><p style="opacity:.9;font-size:20px;max-width:520px">We can't see your face. Sit in front of your webcam so your teacher can see you.</p></div>
 <div id=cm class="full hide" style="background:radial-gradient(circle at 30% 20%,#0e7490,#164e63);z-index:64"><div style="font-size:90px">📷</div><h1 style="font-size:40px;margin:10px 0">Webcam required</h1><p style="opacity:.85;font-size:18px;max-width:520px">Your school needs your webcam on during class. It is shared only with your teacher and the admin, over the school network.</p><button class=x onclick=startCam() style="font-size:20px;padding:14px 28px;margin:14px">Turn on my camera</button><button class=g id=cmn onclick="camNo=true;camUi()">Not now</button><p id=cme style="color:#fecaca;font-weight:600;min-height:24px;max-width:520px"></p></div>
 <div id=pr class="full hide" style="background:#000;z-index:55;padding:0"><div id=prn style="position:absolute;top:10px;left:14px;font-weight:700;background:#0009;padding:6px 12px;border-radius:10px;z-index:1"></div><button class=g onclick="prHide=true;prUi()" style="position:absolute;top:10px;right:14px;z-index:1">Minimize</button><video id=prv autoplay playsinline style="width:100%;height:100%;object-fit:contain"></video></div>
 <button id=prb class=hide onclick="prHide=false;prUi()" style="position:fixed;right:14px;bottom:14px;z-index:56">📺 Show shared screen</button>
 <script>
 if(window.NOGO)throw 0;
 let name=localStorage.fm_sn||'',sid=localStorage.fm_sid||(localStorage.fm_sid=Math.random().toString(36).slice(2)),code=localStorage.fm_sc||'',focusOn=false,tc=null,joined=false,want=false,busy=false,away=false,last=Date.now(),ready=false,stream=null,needSh=false,cap='bal',blocked=false;
-const pres=new Map(),recBy=new Map();let camMode=0,camStream=null,prHide=false,camNo=false;
+const pres=new Map(),recBy=new Map();let faceOn=false,faceMiss=false,faceBad=0,faceP=null,faceT=null,faceTok=0,faceBusy=0,fvid=null;let camMode=0,camStream=null,prHide=false,camNo=false;
 const wants=new Map(),outs=new Map(),show=i=>['s1','s2','s3'].forEach(x=>$(x).classList.toggle('hide',x!=i));
 const peer=mkPeer();peer.on('open',()=>ready=true);peer.on('disconnected',()=>{try{peer.reconnect()}catch(e){}});peer.on('error',()=>{});
 // Only the admin may open a viewing channel directly; the teacher uses the class connection.
@@ -41,7 +42,7 @@ function go(c){if(blocked)return;if(!/^\d{6}$/.test(c))return $('er').textConten
   setTimeout(()=>{if(!joined&&tc===mine){busy=false;try{mine.close()}catch(e){}if(want){$('er').textContent='Teacher not reachable, retrying…';setTimeout(()=>want&&go(code),2000)}}},7000);
   tc.on('close',()=>{if(tc!==mine)return;const was=joined;joined=false;busy=false;drop(mine.peer);if(want&&was){$('cs').textContent='Disconnected — reconnecting…';shUi();setTimeout(()=>want&&go(code),3000)}})})}
 function onT(d){
- if(d.t=='yes'){joined=true;busy=false;focusOn=!!d.focus;needSh=!!d.share;cap=d.cap||'bal';pipSet(!!d.pip);localStorage.fm_sc=code;$('cn').textContent=d.cname;$('cs').textContent="You're in class.";$('er').textContent='';show('s3');eyes(d.eyes);fbar();shUi();camSet(d.cam);if(d.rec)view(tc.peer,{t:'rec',on:1,k:d.rec});hb()}
+ if(d.t=='yes'){joined=true;busy=false;focusOn=!!d.focus;needSh=!!d.share;cap=d.cap||'bal';pipSet(!!d.pip);localStorage.fm_sc=code;$('cn').textContent=d.cname;$('cs').textContent="You're in class.";$('er').textContent='';show('s3');eyes(d.eyes);fbar();shUi();camSet(d.cam);faceSet(d.face);if(d.rec)view(tc.peer,{t:'rec',on:1,k:d.rec});hb()}
  else if(d.t=='no'){want=false;busy=false;joined=false;localStorage.removeItem('fm_sc');stopShare();cleanup();home();$('er').textContent=d.why=='removed'?'You were removed from the class.':'Could not join that class.'}
  else if(d.t=='focus'){focusOn=d.on;fbar();hb()}
  else if(d.t=='eyes')eyes(d.on)
@@ -49,7 +50,7 @@ function onT(d){
  else if(d.t=='policy'){cap=d.cap||'bal';wants.forEach((_,v)=>applyQ(v))}
  else if(d.t=='watch'||d.t=='q'||d.t=='unwatch')view(tc.peer,d)
  else if(d.t=='pip')pipSet(!!d.on)
- else if(d.t=='cam')camSet(d.m)
+ else if(d.t=='cam'){camSet(d.m);faceSet(d.face)}
  else if(d.t=='present')view(tc.peer,d)
  else if(d.t=='rec')view(tc.peer,d)
  else if(d.t=='pause'){$('apt').textContent=d.why=='admin'?'The admin has closed the admin control panel, so the system has been paused. It will resume automatically when the admin returns.':'Your class has been paused by the admin.';$('ap').classList.remove('hide')}
@@ -84,7 +85,7 @@ function fit(e,s=170){e.style.fontSize=s+'px';while((e.scrollHeight>e.clientHeig
 addEventListener('resize',()=>!$('mo').classList.contains('hide')&&fit($('mt')));
 function leave(keep){pipSet(false);want=false;joined=false;busy=false;stopShare();cleanup();wants.clear();try{tc&&tc.close()}catch(e){}tc=null;if(!keep)localStorage.removeItem('fm_sc');eyes(0);if(!blocked)home()}
 function forget(){localStorage.clear();location.reload()}
-function hb(){if(!(tc&&tc.open&&joined))return;tc.send({t:'hb',st:focusOn?(away?'away':'ok'):'idle',sh:!!stream,cm:!!camStream})}
+function hb(){if(!(tc&&tc.open&&joined))return;tc.send({t:'hb',st:focusOn?(away?'away':'ok'):'idle',sh:!!stream,cm:!!camStream,fa:faceMiss})}
 const chk=()=>{away=document.hidden||!document.hasFocus();hb()};
 document.addEventListener('visibilitychange',chk);addEventListener('blur',chk);addEventListener('focus',chk);
 const w=new Worker(URL.createObjectURL(new Blob(['setInterval(()=>postMessage(1),2000)'])));
@@ -96,11 +97,19 @@ async function openPip(){if(!pipOn||pw||!window.documentPictureInPicture)return;
  d.head.innerHTML='<style>html,body{margin:0;height:100%}body{display:flex;font-family:system-ui,sans-serif;background:radial-gradient(circle at 30% 20%,#4f46e5,#1e1b4b);color:#fff;text-align:center}#a{flex:1;display:flex;flex-direction:column;padding:3vmin;min-width:0}#f{opacity:.8;font-size:max(11px,3.2vmin)}#t{flex:1;overflow:hidden;display:flex;align-items:center;justify-content:center;font-weight:800;word-break:break-word;line-height:1.1}button{border:0;border-radius:2vmin;padding:1.2vmin 3vmin;font-weight:700;font-size:max(12px,3.6vmin);background:#22c55e;color:#fff;cursor:pointer}</style>';
  d.body.innerHTML='<div id=a><div id=f></div><div id=t></div><button id=b>OK</button></div>';d.getElementById('b').onclick=()=>{pm=null;pipR()};
  new w2.ResizeObserver(()=>pipR()).observe(d.body);w2.addEventListener('pagehide',()=>{if(pw===w2)pw=null;pb()});pipR();pb()}catch(e){pw=null}}
-function pipR(){if(!pw)return;const d=pw.document,f=d.getElementById('f'),t=d.getElementById('t'),b=d.getElementById('b');if(!t)return;const idle=!eyOn&&!pm;
- f.textContent=eyOn||!pm?'':'Message from '+pm.from;t.textContent=eyOn?'👀 Eyes up':pm?pm.text:'Class Connect';t.style.opacity=idle?.5:1;b.style.display=!eyOn&&pm?'':'none';fit(t,idle?40:300)}
+function pipR(){if(!pw)return;const d=pw.document,f=d.getElementById('f'),t=d.getElementById('t'),b=d.getElementById('b');if(!t)return;const idle=!eyOn&&!pm&&!faceMiss;
+ f.textContent=eyOn||!pm||faceMiss?'':'Message from '+pm.from;t.textContent=eyOn?'👀 Eyes up':faceMiss?'📷 Be visible to the camera':pm?pm.text:'Class Connect';t.style.opacity=idle?.5:1;b.style.display=!eyOn&&pm&&!faceMiss?'':'none';fit(t,idle?40:300)}
 document.addEventListener('click',()=>{if(pipOn&&!pw)openPip()});document.addEventListener('keydown',()=>{if(pipOn&&!pw)openPip()});
 // Chrome can open the floating window by itself when the student switches tabs, as long as the camera is on and the site is allowed to do so
 try{navigator.mediaSession.setActionHandler('enterpictureinpicture',()=>{if(pipOn&&!pw)openPip()})}catch(e){}
+// ---- face detection (admin switch): if no face is seen by the webcam for ~5 seconds, show a message + PiP text and alert the teacher/admin
+const FAPI='https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.13/';
+function loadFace(){return faceP||(faceP=new Promise((ok,no)=>{const s=document.createElement('script');s.src=FAPI+'dist/face-api.js';s.onload=async()=>{try{await faceapi.nets.tinyFaceDetector.loadFromUri(FAPI+'model/');ok(1)}catch(e){no(e)}};s.onerror=no;document.head.appendChild(s)}).catch(e=>{faceP=null;throw e}))}
+function faceSet(on){faceOn=!!on;faceLoop()}
+function faceLoop(){clearInterval(faceT);faceT=null;const tok=++faceTok;if(!(faceOn&&camStream)){faceSet2(false);return}
+ if(!fvid){fvid=document.createElement('video');fvid.muted=true;fvid.playsInline=true}if(fvid.srcObject!==camStream){fvid.srcObject=camStream;fvid.play().catch(()=>{})}
+ loadFace().then(()=>{if(tok!==faceTok)return;faceT=setInterval(async()=>{if(!(faceOn&&camStream)||!fvid.videoWidth||faceBusy)return;faceBusy=1;try{const r=await faceapi.detectAllFaces(fvid,new faceapi.TinyFaceDetectorOptions({inputSize:224,scoreThreshold:.4}));faceBad=r.length?0:faceBad+1;faceSet2(faceBad>=3)}catch(e){}faceBusy=0},1500)}).catch(()=>toast('Face detection could not load (the computer needs internet access for it)'))}
+function faceSet2(m){if(m===faceMiss)return;faceMiss=m;if(!m)faceBad=0;$('fv').classList.toggle('hide',!(m&&joined&&!blocked));pipR();hb()}
 // ---- webcam (optional or required; admin decides, admin/teacher switch it on per class). Streams go only to the teacher/admin on the local network.
 async function startCam(){const e=$('cme');e.textContent='';try{const st=await navigator.mediaDevices.getUserMedia({video:{width:{ideal:640},height:{ideal:480},frameRate:{ideal:15,max:20}},audio:false});
  st.getVideoTracks()[0].onended=()=>{if(camStream===st)stopCam()};camStream=st;wants.forEach((q,v)=>callV(v,'cam'));camUi();hb()}
@@ -108,7 +117,7 @@ async function startCam(){const e=$('cme');e.textContent='';try{const st=await n
 function stopCam(){const s=camStream;camStream=null;if(s)s.getTracks().forEach(k=>{try{k.stop()}catch(e){}});for(const[k,o]of[...outs])if(k.endsWith('|cam')){try{o.call.close()}catch(e){}outs.delete(k)}camUi();hb()}
 function camSet(m){const was=camMode;camMode=m||0;if(!camMode){camNo=false;if(camStream)stopCam()}else if(!was){camNo=false;if(!camStream)startCam()}camUi()}
 function camUi(){$('cm').classList.toggle('hide',!(joined&&camMode&&!camStream&&!blocked&&!(camMode=='opt'&&camNo)));$('cmn').classList.toggle('hide',camMode=='req');const e=$('cq');e.classList.toggle('hide',!(camMode&&joined));
- set(e,camStream?'<span class="pill pg">📷 Your webcam is on and visible to your teacher and admin</span> '+(camMode=='req'?'':'<button class="sm g" onclick=stopCam()>Turn off</button>'):camMode=='opt'?'<span class=mu>📷 Webcam sharing is available (optional)</span> <button class="sm x" onclick=startCam()>Turn on camera</button>':'')}
+ faceLoop();set(e,camStream?'<span class="pill pg">📷 Your webcam is on and visible to your teacher and admin</span> '+(camMode=='req'?'':'<button class="sm g" onclick=stopCam()>Turn off</button>'):camMode=='opt'?'<span class=mu>📷 Webcam sharing is available (optional)</span> <button class="sm x" onclick=startCam()>Turn on camera</button>':'')}
 // ---- teacher / admin sharing their screen to this student (window, tab or whole screen)
 peer.on('call',call=>{if(!joined||!tc||(call.peer!==tc.peer&&call.peer!==ADMIN_ID)){try{call.close()}catch(e){}return}call.answer();
  call.on('stream',st=>{pres.set(call.peer,{call,st,from:(call.metadata||{}).from||'Your teacher'});prHide=false;prUi()});
@@ -122,6 +131,6 @@ function stopPull(id){const o=pres.get(id);if(o){try{o.call.close()}catch(e){}pr
 function prUi(){const L=[...pres.values()].filter(x=>x.st),p=L[L.length-1],v=$('prv');$('pr').classList.toggle('hide',!p||prHide||blocked);$('prb').classList.toggle('hide',!p||!prHide||blocked);
  if(p){if(v.srcObject!==p.st){v.srcObject=p.st;v.muted=false;v.play().catch(()=>{v.muted=true;v.play().catch(()=>{})})}$('prn').textContent='📺 '+p.from+' is sharing their screen'}else v.srcObject=null}
 function recUi(){const ks=new Set([].concat(...recBy.values())),e=$('rb');e.classList.toggle('hide',!ks.size);e.textContent='⏺ Recording is on. Your '+[ks.has('scr')&&'screen',ks.has('cam')&&'webcam'].filter(Boolean).join(' and ')+' may be saved by your teacher or the admin.'}
-function cleanup(){stopCam();pres.forEach(p=>{try{p.call.close()}catch(e){}});pres.clear();recBy.clear();camMode=0;camUi();recUi();prUi()}
+function cleanup(){faceSet(0);stopCam();pres.forEach(p=>{try{p.call.close()}catch(e){}});pres.clear();recBy.clear();camMode=0;camUi();recUi();prUi()}
 chkBlock();if(!blocked){if(name){home();if(code){want=true;setTimeout(()=>go(code),1500)}}else show('s1')}
 </script></body></html>
