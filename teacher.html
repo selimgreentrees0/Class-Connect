@@ -37,7 +37,8 @@ function ev(k,name,text,cls,notify){if(authed&&ac&&ac.open)ac.send({t:'ev',cls,t
  if(notify&&!pol.paused&&alertsOn){toast((cls=='pr'?'⚠️ ':'')+name+' '+text);beep()}}
 const peer=mkPeer();peer.on('open',i=>pid=i);peer.on('disconnected',()=>{try{peer.reconnect()}catch(e){}});peer.on('error',()=>{});
 // Student screens arrive as WebRTC calls (local network only)
-peer.on('call',call=>{call.answer();const cam=(call.metadata||{}).k=='cam',sk=cam?'vc':'vs',ck=cam?'call2':'call',s=byPid(call.peer);if(s){if(s[ck]&&s[ck]!==call)try{s[ck].close()}catch(e){}s[ck]=call}
+peer.on('call',call=>{if((call.metadata||{}).k=='pull'){const i=PR.st&&Object.keys(STU[PR.cid]||{}).find(i=>STU[PR.cid][i].pid==call.peer);if(i&&(PR.mode=='all'||PR.ids.includes(i))){call.answer(PR.st);PR.calls.set(call.peer,{call,t:Date.now()});call.on('close',()=>{const q=PR.calls.get(call.peer);if(q&&q.call===call)PR.calls.delete(call.peer)})}else try{call.close()}catch(e){}return}
+ call.answer();const cam=(call.metadata||{}).k=='cam',sk=cam?'vc':'vs',ck=cam?'call2':'call',s=byPid(call.peer);if(s){if(s[ck]&&s[ck]!==call)try{s[ck].close()}catch(e){}s[ck]=call}
  call.on('stream',st=>{const x=byPid(call.peer);if(x)x[sk]=st});call.on('close',()=>{const x=byPid(call.peer);if(x&&x[ck]===call){x[sk]=null;x[ck]=null}})});
 function byPid(p){for(const c in STU)for(const i in STU[c])if(STU[c][i].pid==p)return STU[c][i]}
 const stuOf=sid=>{const k=cl();return k&&STU[k.id]&&STU[k.id][sid]};
@@ -124,15 +125,14 @@ setInterval(()=>{const n=Date.now();classes.forEach(k=>{const m=STU[k.id]||{};fo
  if(asl&&!s.asl){s.asl=1;ev(k,s.name,'laptop went to sleep or went offline','pr',1)}else if(!asl&&s.asl){s.asl=0;ev(k,s.name,'is back online','pg')}}});if(authed&&Date.now()-lastAdm>7000)gone();wd();feedP();if(Rec.on)Rec.sync(Object.entries(STU[Rec.cid]||{}).filter(([i,s])=>!hid(s.name)).map(([i,s])=>({id:i,name:s.name,scr:s.vs,cam:s.vc})));applyQ();draw()},1000);
 setInterval(()=>{if(authed&&ac&&ac.open)classes.filter(k=>k.active).forEach(k=>ac.send({t:'roster',cid:k.id,students:list(k).map(x=>({id:x.id,name:x.name,st:status(k,x.s)[0],pid:x.s&&x.s.c&&x.s.c.open?x.s.pid:null,sh:!!(x.s&&x.s.c&&x.s.sh),cm:!!(x.s&&x.s.c&&x.s.cm),pct:x.s&&x.s.tot>3?Math.round(x.s.on*100/x.s.tot):null,left:x.s?x.s.left:0}))}))},2000);
 // ---- present my screen (window / tab / entire screen) to the whole class or to selected students
-const PR={st:null,mode:'all',cid:null,ids:[],calls:new Map()};
+var PR={st:null,mode:'all',cid:null,ids:[],calls:new Map(),sent:{}};
 async function present(mode){const k=cl();if(!k)return;if(pol.canPresent===false)return toast('Screen sharing to students is turned off by the admin');if(mode=='sel'&&!ticks.size)return toast('Select students first (tick them below)');
  stopPresent();try{const st=await navigator.mediaDevices.getDisplayMedia({video:{frameRate:{ideal:24,max:30},width:{max:1920},height:{max:1080}},audio:true,selfBrowserSurface:'exclude',surfaceSwitching:'include'});
-  st.getVideoTracks()[0].onended=()=>{if(PR.st===st)stopPresent()};PR.st=st;PR.mode=mode;PR.cid=k.id;PR.ids=mode=='sel'?[...ticks]:[];feedP();draw()}catch(e){toast('Sharing was cancelled')}}
-function stopPresent(){const st=PR.st;PR.st=null;if(st)st.getTracks().forEach(t=>{try{t.stop()}catch(e){}});PR.calls.forEach(o=>{try{o.call.close()}catch(e){}});PR.calls.clear();if(st)draw()}
-function feedP(){if(!PR.st)return;const m=STU[PR.cid]||{};for(const i in m){const s=m[i],want=PR.mode=='all'||PR.ids.includes(i),o=PR.calls.get(i);
-  if(!want||!s.c||!s.c.open||!s.pid||!authed||pol.paused){if(o){try{o.call.close()}catch(e){}PR.calls.delete(i)}continue}
-  if(o&&(o.call.open||Date.now()-o.t<6000))continue;if(o)try{o.call.close()}catch(e){}
-  const call=peer.call(s.pid,PR.st,{metadata:{from:tname||'Your teacher'}});PR.calls.set(i,{call,t:Date.now()});call.on('close',()=>{const q=PR.calls.get(i);if(q&&q.call===call)PR.calls.delete(i)});call.on('error',()=>{})}}
+  st.getVideoTracks()[0].onended=()=>{if(PR.st===st)stopPresent()};PR.sent={};PR.st=st;PR.mode=mode;PR.cid=k.id;PR.ids=mode=='sel'?[...ticks]:[];feedP();draw()}catch(e){toast('Sharing was cancelled')}}
+function stopPresent(){const st=PR.st;PR.st=null;if(st)st.getTracks().forEach(t=>{try{t.stop()}catch(e){}});PR.calls.forEach(o=>{try{o.call.close()}catch(e){}});PR.calls.clear();if(st){stuAll({t:'present',on:0});draw()}}
+function feedP(){if(!PR.st)return;const m=STU[PR.cid]||{},n=Date.now();for(const i in m){const s=m[i],want=PR.mode=='all'||PR.ids.includes(i),o=PR.calls.get(s.pid);
+  if(!want||!s.c||!s.c.open||!s.pid||!authed||pol.paused){if(o){try{o.call.close()}catch(e){}PR.calls.delete(s.pid)}continue}
+  if(o&&o.call.open)continue;if(n-(PR.sent[s.pid]||0)>3000){PR.sent[s.pid]=n;s.c.send({t:'present',on:1,from:tname||'Your teacher'})}}}
 // ---- recording
 function recStart(){const k=cl();if(!k||Rec.on)return;if(!canRec())return toast('Recording is not enabled by the admin');Rec.start(k.id,k.name,recKinds());stuAll({t:'rec',on:1,k:recK()},k.id);applyQ();draw()}
 async function recStop(){const k=classes.find(c=>c.id==Rec.cid);await Rec.stop();if(k)stuAll({t:'rec',on:0},k.id);applyQ();draw()}
